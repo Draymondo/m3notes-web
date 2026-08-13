@@ -8,7 +8,8 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp
 } from 'firebase/firestore'
 import { db } from '../firebase'
 
@@ -22,7 +23,6 @@ export function subscribeNotes(userId, includeArchived, callback) {
     orderBy('updatedAt', 'desc')
   )
 
-  // Note: Firestore compound queries need indexes. For simplicity we filter archived client-side if needed.
   return onSnapshot(q, (snap) => {
     let notes = snap.docs.map(d => ({ id: d.id, ...d.data() }))
     if (!includeArchived) {
@@ -46,7 +46,7 @@ export async function createNote(userId, data) {
     checklist: data.checklist || [],
     isChecklist: data.isChecklist || false,
     createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
+    updatedAt: Timestamp.now()
   })
   return ref.id
 }
@@ -54,7 +54,7 @@ export async function createNote(userId, data) {
 export async function updateNote(noteId, data) {
   await updateDoc(doc(db, NOTES, noteId), {
     ...data,
-    updatedAt: serverTimestamp()
+    updatedAt: Timestamp.now()
   })
 }
 
@@ -65,13 +65,13 @@ export async function deleteNote(noteId) {
 export async function togglePin(noteId, isPinned) {
   await updateDoc(doc(db, NOTES, noteId), {
     isPinned,
-    updatedAt: serverTimestamp()
+    updatedAt: Timestamp.now()
   })
 }
 
 export async function toggleArchive(noteId, isArchived) {
   await updateDoc(doc(db, NOTES, noteId), {
     isArchived,
-    updatedAt: serverTimestamp()
+    updatedAt: Timestamp.now()
   })
 }
