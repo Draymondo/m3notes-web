@@ -1,0 +1,131 @@
+.note-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.2s;
+}
+
+.note-page.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.note-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: inherit;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.icon-btn:hover {
+  opacity: 1;
+  background: rgba(0,0,0,0.06);
+}
+
+.icon-btn.active {
+  opacity: 1;
+}
+
+.color-picker {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px 16px;
+  flex-wrap: wrap;
+}
+
+.color-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.color-dot:hover {
+  transform: scale(1.1);
+}
+
+.color-dot.selected {
+  border-color: #202124;
+  box-shadow: 0 0 0 1px #fff;
+}
+
+.note-title-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1.4rem;
+  font-weight: 500;
+  padding: 0 20px 8px;
+  color: inherit;
+  width: 100%;
+}
+
+.note-title-input::placeholder {
+  color: rgba(0,0,0,0.4);
+}
+
+.note-content-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 0 20px 40px;
+  color: inherit;
+  width: 100%;
+  resize: none;
+  flex: 1;
+  min-height: 200px;
+}
+
+.note-content-input::placeholder {
+  color: rgba(0,0,0,0.35);
+}
+
+/* Color backgrounds */
+.note-default { background: #ffffff; color: #202124; }
+.note-red { background: #f28b82; color: #202124; }
+.note-orange { background: #fbbc04; color: #202124; }
+.note-yellow { background: #fff475; color: #202124; }
+.note-green { background: #ccff90; color: #202124; }
+.note-teal { background: #a7ffeb; color: #202124; }
+.note-blue { background: #cbf0f8; color: #202124; }
+.note-darkblue { background: #aecbfa; color: #202124; }
+.note-purple { background: #d7aefb; color: #202124; }
+.note-pink { background: #fdcfe8; color: #202124; }
+.note-brown { background: #e6c9a8; color: #202124; }
+.note-gray { background: #e8eaed; color: #202124; }
+
+[data-theme="dark"] .note-default { background: #303134; color: #e8eaed; }
+[data-theme="dark"] .note-default .note-title-input::placeholder,
+[data-theme="dark"] .note-default .note-content-input::placeholder {
+  color: rgba(255,255,255,0.35);
+}

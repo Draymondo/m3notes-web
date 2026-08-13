@@ -1,0 +1,133 @@
+.home {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.search-box {
+  flex: 1;
+  max-width: 480px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.search-box input:focus {
+  border-color: var(--primary);
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.topbar-actions button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.topbar-actions button:hover {
+  background: var(--border);
+}
+
+.notes-area {
+  flex: 1;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.notes-grid {
+  column-count: 1;
+  column-gap: 12px;
+}
+
+@media (min-width: 500px) {
+  .notes-grid { column-count: 2; }
+}
+@media (min-width: 750px) {
+  .notes-grid { column-count: 3; }
+}
+@media (min-width: 1000px) {
+  .notes-grid { column-count: 4; }
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 80px;
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+.fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: var(--fab-size);
+  height: var(--fab-size);
+  border-radius: 16px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-size: 1.8rem;
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  z-index: 20;
+}
+
+.fab:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 16px rgba(26, 115, 232, 0.5);
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .search-box {
+    order: 3;
+    max-width: 100%;
+    flex-basis: 100%;
+  }
+}
