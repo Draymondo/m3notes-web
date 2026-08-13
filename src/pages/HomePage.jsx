@@ -1,21 +1,27 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Archive, StickyNote, Sun, Moon, LogOut, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
-import { subscribeNotes } from '../services/notes'
+import { subscribeNotes, deleteNote } from '../services/notes'
 import NoteCard from '../components/NoteCard'
 import './HomePage.css'
+
+const UNDO_DELAY = 5000
 
 export default function HomePage() {
   const { user, logout } = useAuth()
   const { dark, toggle } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [notes, setNotes] = useState([])
   const [showArchived, setShowArchived] = useState(false)
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [pendingDeleteId, setPendingDeleteId] = useState(null)
+  const deleteTimerRef = useRef(null)
+  const processedKeyRef = useRef(null)
 
   useEffect(() => {
     if (!user) return
@@ -27,13 +33,42 @@ export default function HomePage() {
     return unsub
   }, [user, showArchived])
 
+  useEffect(() => {
+    const deletedId = location.state?.deletedNoteId
+    if (deletedId && processedKeyRef.current !== location.key) {
+      processedKeyRef.current = location.key
+      setPendingDeleteId(deletedId)
+      deleteTimerRef.current = setTimeout(() => {
+        deleteNote(deletedId).catch(err => console.error('Delete error:', err))
+        setPendingDeleteId(null)
+      }, UNDO_DELAY)
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location, navigate])
+
+  useEffect(() => {
+    return () => {
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+    }
+  }, [])
+
+  const undoDelete = () => {
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+    setPendingDeleteId(null)
+  }
+
+  const visible = notes.filter(n => n.id !== pendingDeleteId)
+
   const filtered = search.trim()
-    ? notes.filter(n =>
+    ? visible.filter(n =>
         (n.title || '').toLowerCase().includes(search.toLowerCase()) ||
         (n.content || '').toLowerCase().includes(search.toLowerCase()) ||
         (n.labels || []).some(l => l.toLowerCase().includes(search.toLowerCase()))
       )
-    : notes
+    : visible
+
+  const pinned = filtered.filter(n => n.isPinned)
+  const others = filtered.filter(n => !n.isPinned)
 
   return (
     <div className="home">
@@ -72,17 +107,46 @@ export default function HomePage() {
             {showArchived ? 'Aucune note archivée' : 'Aucune note\nClique sur + pour commencer'}
           </p>
         ) : (
-          <div className="notes-grid">
-            {filtered.map(note => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                onClick={() => navigate(`/note/${note.id}`)}
-              />
-            ))}
-          </div>
+          <>
+            {pinned.length > 0 && (
+              <section className="notes-section">
+                {others.length > 0 && <h2 className="section-title">Épinglées</h2>}
+                <div className="notes-grid">
+                  {pinned.map(note => (
+                    <NoteCard
+                      key={note.id}
+                      note={note}
+                      onClick={() => navigate(`/note/${note.id}`)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {others.length > 0 && (
+              <section className="notes-section">
+                {pinned.length > 0 && <h2 className="section-title">Autres</h2>}
+                <div className="notes-grid">
+                  {others.map(note => (
+                    <NoteCard
+                      key={note.id}
+                      note={note}
+                      onClick={() => navigate(`/note/${note.id}`)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </main>
+
+      {pendingDeleteId && (
+        <div className="snackbar">
+          <span>Note supprimée</span>
+          <button onClick={undoDelete}>Annuler</button>
+        </div>
+      )}
 
       <button className="fab" onClick={() => navigate('/note/new')} title="Nouvelle note">
         <Plus size={26} />

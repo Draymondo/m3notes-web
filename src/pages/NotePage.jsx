@@ -155,9 +155,8 @@ export default function NotePage() {
     if (!isNew) setConfirmOpen(true)
   }
 
-  const confirmDelete = async () => {
-    await deleteNote(id)
-    navigate('/')
+  const confirmDelete = () => {
+    navigate('/', { state: { deletedNoteId: id } })
   }
 
   if (loading) return <div className="note-page loading">Chargement…</div>
