@@ -129,3 +129,75 @@
 [data-theme="dark"] .note-default .note-content-input::placeholder {
   color: rgba(255,255,255,0.35);
 }
+
+.checklist-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.check-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.check-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0.6;
+  display: block;
+}
+
+.checklist-row.checked .check-box {
+  background: currentColor;
+  opacity: 0.4;
+}
+
+.checklist-item-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  padding: 4px 0;
+  outline: none;
+  color: inherit;
+}
+
+.checklist-row.checked .checklist-item-input {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.remove-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.4;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.remove-item:hover {
+  opacity: 0.8;
+}
+
+.new-item-row .add-icon {
+  opacity: 0.5;
+  flex-shrink: 0;
+}
