@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
+import { ArrowLeft, Pin, Archive, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { db } from '../firebase'
 import { createNote, updateNote, deleteNote } from '../services/notes'
@@ -97,25 +98,27 @@ export default function NotePage() {
   return (
     <div className={`note-page ${colorClass[color] || 'note-default'}`}>
       <header className="note-toolbar">
-        <button className="icon-btn" onClick={save} title="Retour">←</button>
+        <button className="icon-btn" onClick={save} title="Retour">
+          <ArrowLeft size={22} />
+        </button>
         <div className="toolbar-actions">
           <button
             className={`icon-btn ${isPinned ? 'active' : ''}`}
             onClick={() => setIsPinned(!isPinned)}
             title="Épingler"
           >
-            📌
+            <Pin size={20} fill={isPinned ? 'currentColor' : 'none'} />
           </button>
           <button
-            className="icon-btn"
+            className={`icon-btn ${isArchived ? 'active' : ''}`}
             onClick={() => setIsArchived(!isArchived)}
             title="Archiver"
           >
-            📦
+            <Archive size={20} />
           </button>
           {!isNew && (
             <button className="icon-btn" onClick={handleDelete} title="Supprimer">
-              🗑️
+              <Trash2 size={20} />
             </button>
           )}
         </div>

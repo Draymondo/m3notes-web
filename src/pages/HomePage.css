@@ -131,3 +131,11 @@
     flex-basis: 100%;
   }
 }
+
+.topbar-actions button svg {
+  display: block;
+}
+
+.fab svg {
+  display: block;
+}

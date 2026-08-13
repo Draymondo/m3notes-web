@@ -1,3 +1,4 @@
+import { Pin, CheckSquare, Square } from 'lucide-react'
 import './NoteCard.css'
 
 const colorClass = {
@@ -20,15 +21,15 @@ export default function NoteCard({ note, onClick }) {
 
   return (
     <div className={`note-card ${cls}`} onClick={onClick}>
-      {note.isPinned && <span className="pin">📌</span>}
-      
+      {note.isPinned && <Pin className="pin" size={16} fill="currentColor" />}
+
       {note.title && <h3 className="note-title">{note.title}</h3>}
-      
+
       {note.isChecklist ? (
         <ul className="checklist">
           {(note.checklist || []).slice(0, 6).map((item, i) => (
             <li key={i} className={item.isChecked ? 'checked' : ''}>
-              {item.isChecked ? '☑' : '☐'} {item.text}
+              {item.isChecked ? <CheckSquare size={14} /> : <Square size={14} />} {item.text}
             </li>
           ))}
           {(note.checklist || []).length > 6 && (

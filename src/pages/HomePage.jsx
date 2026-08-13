@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Archive, StickyNote, Sun, Moon, LogOut, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { subscribeNotes } from '../services/notes'
@@ -52,12 +53,14 @@ export default function HomePage() {
 
         <div className="topbar-actions">
           <button onClick={() => setShowArchived(!showArchived)} title="Archives">
-            {showArchived ? '📝' : '📦'}
+            {showArchived ? <StickyNote size={20} /> : <Archive size={20} />}
           </button>
           <button onClick={toggle} title="Thème">
-            {dark ? '☀️' : '🌙'}
+            {dark ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <button onClick={logout} title="Déconnexion">⏻</button>
+          <button onClick={logout} title="Déconnexion">
+            <LogOut size={20} />
+          </button>
         </div>
       </header>
 
@@ -82,7 +85,7 @@ export default function HomePage() {
       </main>
 
       <button className="fab" onClick={() => navigate('/note/new')} title="Nouvelle note">
-        +
+        <Plus size={26} />
       </button>
     </div>
   )
