@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
-import { ArrowLeft, Pin, Archive, Trash2 } from 'lucide-react'
+import { v4 as uuidv4 } from 'uuid'
+import { ArrowLeft, Pin, Archive, Trash2, ListChecks, AlignLeft, X, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { db } from '../firebase'
 import { createNote, updateNote, deleteNote } from '../services/notes'
+import ConfirmDialog from '../components/ConfirmDialog'
 import './NotePage.css'
 
 const COLORS = [
@@ -48,7 +50,11 @@ export default function NotePage() {
   const [color, setColor] = useState('DEFAULT')
   const [isPinned, setIsPinned] = useState(false)
   const [isArchived, setIsArchived] = useState(false)
+  const [isChecklist, setIsChecklist] = useState(false)
+  const [checklist, setChecklist] = useState([])
+  const [newItemText, setNewItemText] = useState('')
   const [loading, setLoading] = useState(!isNew)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   useEffect(() => {
     if (isNew || !user) return
@@ -60,22 +66,63 @@ export default function NotePage() {
         setColor(data.color || 'DEFAULT')
         setIsPinned(data.isPinned || false)
         setIsArchived(data.isArchived || false)
+        setIsChecklist(data.isChecklist || false)
+        setChecklist(data.checklist || [])
       }
       setLoading(false)
     })
   }, [id, isNew, user])
 
+  const addItem = (text) => {
+    const trimmed = text.trim()
+    if (!trimmed) return
+    setChecklist([...checklist, { id: uuidv4(), text: trimmed, isChecked: false }])
+    setNewItemText('')
+  }
+
+  const updateItemText = (itemId, text) => {
+    setChecklist(checklist.map(it => it.id === itemId ? { ...it, text } : it))
+  }
+
+  const toggleItem = (itemId) => {
+    setChecklist(checklist.map(it => it.id === itemId ? { ...it, isChecked: !it.isChecked } : it))
+  }
+
+  const removeItem = (itemId) => {
+    setChecklist(checklist.filter(it => it.id !== itemId))
+  }
+
+  const switchToChecklist = () => {
+    if (content.trim() && checklist.length === 0) {
+      const lines = content.split('\n').filter(l => l.trim())
+      setChecklist(lines.map(text => ({ id: uuidv4(), text: text.trim(), isChecked: false })))
+      setContent('')
+    }
+    setIsChecklist(true)
+  }
+
+  const switchToText = () => {
+    if (checklist.length > 0 && !content.trim()) {
+      setContent(checklist.map(it => it.text).join('\n'))
+    }
+    setIsChecklist(false)
+  }
+
   const save = async () => {
     if (!user) return
+    const cleanChecklist = checklist.filter(it => it.text.trim())
     const data = {
       title: title.trim(),
-      content: content.trim(),
+      content: isChecklist ? '' : content.trim(),
       color,
       isPinned,
-      isArchived
+      isArchived,
+      isChecklist,
+      checklist: isChecklist ? cleanChecklist : []
     }
+    const isEmpty = !data.title && !data.content && (!isChecklist || cleanChecklist.length === 0)
     if (isNew) {
-      if (!data.title && !data.content) {
+      if (isEmpty) {
         navigate('/')
         return
       }
@@ -86,11 +133,13 @@ export default function NotePage() {
     navigate('/')
   }
 
-  const handleDelete = async () => {
-    if (!isNew && confirm('Supprimer cette note ?')) {
-      await deleteNote(id)
-      navigate('/')
-    }
+  const handleDelete = () => {
+    if (!isNew) setConfirmOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    await deleteNote(id)
+    navigate('/')
   }
 
   if (loading) return <div className="note-page loading">Chargement…</div>
@@ -102,6 +151,13 @@ export default function NotePage() {
           <ArrowLeft size={22} />
         </button>
         <div className="toolbar-actions">
+          <button
+            className="icon-btn"
+            onClick={isChecklist ? switchToText : switchToChecklist}
+            title={isChecklist ? 'Passer en texte' : 'Passer en checklist'}
+          >
+            {isChecklist ? <AlignLeft size={20} /> : <ListChecks size={20} />}
+          </button>
           <button
             className={`icon-btn ${isPinned ? 'active' : ''}`}
             onClick={() => setIsPinned(!isPinned)}
@@ -143,12 +199,59 @@ export default function NotePage() {
         autoFocus={isNew}
       />
 
-      <textarea
-        className="note-content-input"
-        placeholder="Note"
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        rows={12}
+      {isChecklist ? (
+        <div className="checklist-editor">
+          {checklist.map(item => (
+            <div key={item.id} className={`checklist-row ${item.isChecked ? 'checked' : ''}`}>
+              <button className="check-toggle" onClick={() => toggleItem(item.id)}>
+                <span className="check-box" />
+              </button>
+              <input
+                className="checklist-item-input"
+                value={item.text}
+                onChange={e => updateItemText(item.id, e.target.value)}
+                placeholder="Élément"
+              />
+              <button className="remove-item" onClick={() => removeItem(item.id)} title="Supprimer">
+                <X size={16} />
+              </button>
+            </div>
+          ))}
+
+          <div className="checklist-row new-item-row">
+            <Plus size={18} className="add-icon" />
+            <input
+              className="checklist-item-input"
+              value={newItemText}
+              onChange={e => setNewItemText(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addItem(newItemText)
+                }
+              }}
+              placeholder="Ajouter un élément"
+            />
+          </div>
+        </div>
+      ) : (
+        <textarea
+          className="note-content-input"
+          placeholder="Note"
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          rows={12}
+        />
+      )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Supprimer cette note ?"
+        message="Cette action est definitive."
+        confirmLabel="Supprimer"
+        danger
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmOpen(false)}
       />
     </div>
   )
