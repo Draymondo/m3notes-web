@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { v4 as uuidv4 } from 'uuid'
-import { ArrowLeft, Pin, Archive, Trash2, ListChecks, AlignLeft, X, Plus } from 'lucide-react'
+import { ArrowLeft, Pin, Archive, Trash2, ListChecks, AlignLeft, X, Plus, Tag } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { db } from '../firebase'
 import { createNote, updateNote, deleteNote } from '../services/notes'
@@ -55,6 +55,9 @@ export default function NotePage() {
   const [newItemText, setNewItemText] = useState('')
   const [loading, setLoading] = useState(!isNew)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [labels, setLabels] = useState([])
+  const [newLabelText, setNewLabelText] = useState('')
+  const [labelInputOpen, setLabelInputOpen] = useState(false)
 
   useEffect(() => {
     if (isNew || !user) return
@@ -68,6 +71,7 @@ export default function NotePage() {
         setIsArchived(data.isArchived || false)
         setIsChecklist(data.isChecklist || false)
         setChecklist(data.checklist || [])
+        setLabels(data.labels || [])
       }
       setLoading(false)
     })
@@ -90,6 +94,19 @@ export default function NotePage() {
 
   const removeItem = (itemId) => {
     setChecklist(checklist.filter(it => it.id !== itemId))
+  }
+
+  const addLabel = () => {
+    const trimmed = newLabelText.trim()
+    if (!trimmed) return
+    if (!labels.includes(trimmed)) {
+      setLabels([...labels, trimmed])
+    }
+    setNewLabelText('')
+  }
+
+  const removeLabel = (label) => {
+    setLabels(labels.filter(l => l !== label))
   }
 
   const switchToChecklist = () => {
@@ -118,7 +135,8 @@ export default function NotePage() {
       isPinned,
       isArchived,
       isChecklist,
-      checklist: isChecklist ? cleanChecklist : []
+      checklist: isChecklist ? cleanChecklist : [],
+      labels
     }
     const isEmpty = !data.title && !data.content && (!isChecklist || cleanChecklist.length === 0)
     if (isNew) {
@@ -157,6 +175,13 @@ export default function NotePage() {
             title={isChecklist ? 'Passer en texte' : 'Passer en checklist'}
           >
             {isChecklist ? <AlignLeft size={20} /> : <ListChecks size={20} />}
+          </button>
+          <button
+            className={`icon-btn ${labelInputOpen ? 'active' : ''}`}
+            onClick={() => setLabelInputOpen(!labelInputOpen)}
+            title="Labels"
+          >
+            <Tag size={20} />
           </button>
           <button
             className={`icon-btn ${isPinned ? 'active' : ''}`}
@@ -198,6 +223,34 @@ export default function NotePage() {
         onChange={e => setTitle(e.target.value)}
         autoFocus={isNew}
       />
+
+      {(labelInputOpen || labels.length > 0) && (
+        <div className="labels-editor">
+          {labels.map(label => (
+            <span key={label} className="label-chip">
+              {label}
+              <button onClick={() => removeLabel(label)} title="Retirer">
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+          {labelInputOpen && (
+            <input
+              className="label-input"
+              value={newLabelText}
+              onChange={e => setNewLabelText(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addLabel()
+                }
+              }}
+              placeholder="Nouveau label"
+              autoFocus
+            />
+          )}
+        </div>
+      )}
 
       {isChecklist ? (
         <div className="checklist-editor">

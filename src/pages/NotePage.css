@@ -201,3 +201,49 @@
   opacity: 0.5;
   flex-shrink: 0;
 }
+
+.labels-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.label-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+[data-theme="dark"] .label-chip {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.label-chip button {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.label-chip button:hover {
+  opacity: 1;
+}
+
+.label-input {
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  font-size: 0.85rem;
+  padding: 4px 2px;
+  outline: none;
+  color: inherit;
+  min-width: 100px;
+}
