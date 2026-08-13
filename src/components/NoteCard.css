@@ -75,3 +75,15 @@
   background: rgba(0,0,0,0.08);
   opacity: 0.8;
 }
+
+.checklist-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #5f6368);
+  opacity: 0.8;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.label:hover {
+  opacity: 0.7;
+}

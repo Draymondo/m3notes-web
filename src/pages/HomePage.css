@@ -179,3 +179,32 @@
   font-size: 0.9rem;
   padding: 0;
 }
+
+.label-filter-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 16px;
+  scrollbar-width: none;
+}
+
+.label-filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.label-filter-chip {
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.label-filter-chip.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}

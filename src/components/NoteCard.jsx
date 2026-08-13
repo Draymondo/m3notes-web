@@ -16,8 +16,10 @@ const colorClass = {
   GRAY: 'note-gray'
 }
 
-export default function NoteCard({ note, onClick }) {
+export default function NoteCard({ note, onClick, onLabelClick }) {
   const cls = colorClass[note.color] || 'note-default'
+  const checklist = note.checklist || []
+  const checkedCount = checklist.filter(it => it.isChecked).length
 
   return (
     <div className={`note-card ${cls}`} onClick={onClick}>
@@ -26,16 +28,21 @@ export default function NoteCard({ note, onClick }) {
       {note.title && <h3 className="note-title">{note.title}</h3>}
 
       {note.isChecklist ? (
-        <ul className="checklist">
-          {(note.checklist || []).slice(0, 6).map((item, i) => (
-            <li key={i} className={item.isChecked ? 'checked' : ''}>
-              {item.isChecked ? <CheckSquare size={14} /> : <Square size={14} />} {item.text}
-            </li>
-          ))}
-          {(note.checklist || []).length > 6 && (
-            <li className="more">+{note.checklist.length - 6}…</li>
+        <>
+          {checklist.length > 0 && (
+            <span className="checklist-count">{checkedCount}/{checklist.length}</span>
           )}
-        </ul>
+          <ul className="checklist">
+            {checklist.slice(0, 6).map((item, i) => (
+              <li key={i} className={item.isChecked ? 'checked' : ''}>
+                {item.isChecked ? <CheckSquare size={14} /> : <Square size={14} />} {item.text}
+              </li>
+            ))}
+            {checklist.length > 6 && (
+              <li className="more">+{checklist.length - 6}…</li>
+            )}
+          </ul>
+        </>
       ) : (
         note.content && <p className="note-content">{note.content}</p>
       )}
@@ -43,7 +50,18 @@ export default function NoteCard({ note, onClick }) {
       {note.labels?.length > 0 && (
         <div className="labels">
           {note.labels.slice(0, 3).map(l => (
-            <span key={l} className="label">{l}</span>
+            <span
+              key={l}
+              className="label"
+              onClick={e => {
+                if (onLabelClick) {
+                  e.stopPropagation()
+                  onLabelClick(l)
+                }
+              }}
+            >
+              {l}
+            </span>
           ))}
         </div>
       )}

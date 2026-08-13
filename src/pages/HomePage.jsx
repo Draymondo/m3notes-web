@@ -20,6 +20,7 @@ export default function HomePage() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [pendingDeleteId, setPendingDeleteId] = useState(null)
+  const [activeLabel, setActiveLabel] = useState(null)
   const deleteTimerRef = useRef(null)
   const processedKeyRef = useRef(null)
 
@@ -52,6 +53,10 @@ export default function HomePage() {
     }
   }, [])
 
+  const toggleLabelFilter = (label) => {
+    setActiveLabel(current => current === label ? null : label)
+  }
+
   const undoDelete = () => {
     if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
     setPendingDeleteId(null)
@@ -59,13 +64,19 @@ export default function HomePage() {
 
   const visible = notes.filter(n => n.id !== pendingDeleteId)
 
+  const allLabels = [...new Set(visible.flatMap(n => n.labels || []))].sort()
+
+  const byLabel = activeLabel
+    ? visible.filter(n => (n.labels || []).includes(activeLabel))
+    : visible
+
   const filtered = search.trim()
-    ? visible.filter(n =>
+    ? byLabel.filter(n =>
         (n.title || '').toLowerCase().includes(search.toLowerCase()) ||
         (n.content || '').toLowerCase().includes(search.toLowerCase()) ||
         (n.labels || []).some(l => l.toLowerCase().includes(search.toLowerCase()))
       )
-    : visible
+    : byLabel
 
   const pinned = filtered.filter(n => n.isPinned)
   const others = filtered.filter(n => !n.isPinned)
@@ -99,6 +110,20 @@ export default function HomePage() {
         </div>
       </header>
 
+      {allLabels.length > 0 && (
+        <div className="label-filter-bar">
+          {allLabels.map(label => (
+            <button
+              key={label}
+              className={`label-filter-chip ${activeLabel === label ? 'active' : ''}`}
+              onClick={() => toggleLabelFilter(label)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <main className="notes-area">
         {loading ? (
           <p className="empty">Chargement…</p>
@@ -117,6 +142,7 @@ export default function HomePage() {
                       key={note.id}
                       note={note}
                       onClick={() => navigate(`/note/${note.id}`)}
+                      onLabelClick={toggleLabelFilter}
                     />
                   ))}
                 </div>
@@ -132,6 +158,7 @@ export default function HomePage() {
                       key={note.id}
                       note={note}
                       onClick={() => navigate(`/note/${note.id}`)}
+                      onLabelClick={toggleLabelFilter}
                     />
                   ))}
                 </div>
