@@ -37,6 +37,7 @@ body {
 button {
   font-family: inherit;
   cursor: pointer;
+  color: inherit;
 }
 
 input, textarea {
