@@ -21,6 +21,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [pendingDeleteId, setPendingDeleteId] = useState(null)
   const [activeLabel, setActiveLabel] = useState(null)
+  const [sortBy, setSortBy] = useState('updatedAt')
   const deleteTimerRef = useRef(null)
   const processedKeyRef = useRef(null)
 
@@ -78,8 +79,14 @@ export default function HomePage() {
       )
     : byLabel
 
-  const pinned = filtered.filter(n => n.isPinned)
-  const others = filtered.filter(n => !n.isPinned)
+  const sortFn = (a, b) => {
+    const av = a[sortBy]?.toMillis ? a[sortBy].toMillis() : 0
+    const bv = b[sortBy]?.toMillis ? b[sortBy].toMillis() : 0
+    return bv - av
+  }
+
+  const pinned = filtered.filter(n => n.isPinned).sort(sortFn)
+  const others = filtered.filter(n => !n.isPinned).sort(sortFn)
 
   return (
     <div className="home">
@@ -110,19 +117,30 @@ export default function HomePage() {
         </div>
       </header>
 
-      {allLabels.length > 0 && (
-        <div className="label-filter-bar">
-          {allLabels.map(label => (
-            <button
-              key={label}
-              className={`label-filter-chip ${activeLabel === label ? 'active' : ''}`}
-              onClick={() => toggleLabelFilter(label)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="filter-row">
+        {allLabels.length > 0 && (
+          <div className="label-filter-bar">
+            {allLabels.map(label => (
+              <button
+                key={label}
+                className={`label-filter-chip ${activeLabel === label ? 'active' : ''}`}
+                onClick={() => toggleLabelFilter(label)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <select
+          className="sort-select"
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+        >
+          <option value="updatedAt">Dernière modification</option>
+          <option value="createdAt">Date de création</option>
+        </select>
+      </div>
 
       <main className="notes-area">
         {loading ? (

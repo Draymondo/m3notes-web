@@ -208,3 +208,26 @@
   border-color: var(--primary);
   color: #fff;
 }
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 16px 8px;
+}
+
+.filter-row .label-filter-bar {
+  flex: 1;
+  padding: 4px 0;
+  margin: 0;
+}
+
+.sort-select {
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+}

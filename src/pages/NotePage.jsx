@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { v4 as uuidv4 } from 'uuid'
-import { ArrowLeft, Pin, Archive, Trash2, ListChecks, AlignLeft, X, Plus, Tag } from 'lucide-react'
+import { ArrowLeft, Pin, Archive, Trash2, ListChecks, AlignLeft, X, Plus, Tag, Copy, Share2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { db } from '../firebase'
-import { createNote, updateNote, deleteNote } from '../services/notes'
+import { createNote, updateNote, deleteNote, duplicateNote } from '../services/notes'
 import ConfirmDialog from '../components/ConfirmDialog'
 import './NotePage.css'
 
@@ -159,6 +159,36 @@ export default function NotePage() {
     navigate('/', { state: { deletedNoteId: id } })
   }
 
+  const handleDuplicate = async () => {
+    if (!user || isNew) return
+    const cleanChecklist = checklist.filter(it => it.text.trim())
+    await duplicateNote(user.uid, {
+      title: title.trim(),
+      content: isChecklist ? '' : content.trim(),
+      color,
+      labels,
+      isChecklist,
+      checklist: isChecklist ? cleanChecklist : []
+    })
+    navigate('/')
+  }
+
+  const handleShare = async () => {
+    const shareText = [title.trim(), isChecklist ? checklist.map(it => `- ${it.text}`).join('\n') : content.trim()]
+      .filter(Boolean)
+      .join('\n\n')
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: title.trim() || 'Note', text: shareText })
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error('Share error:', err)
+      }
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(shareText)
+      alert('Copié dans le presse-papiers')
+    }
+  }
+
   if (loading) return <div className="note-page loading">Chargement…</div>
 
   return (
@@ -196,6 +226,14 @@ export default function NotePage() {
           >
             <Archive size={20} />
           </button>
+          <button className="icon-btn" onClick={handleShare} title="Partager">
+            <Share2 size={20} />
+          </button>
+          {!isNew && (
+            <button className="icon-btn" onClick={handleDuplicate} title="Dupliquer">
+              <Copy size={20} />
+            </button>
+          )}
           {!isNew && (
             <button className="icon-btn" onClick={handleDelete} title="Supprimer">
               <Trash2 size={20} />

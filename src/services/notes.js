@@ -75,3 +75,21 @@ export async function toggleArchive(noteId, isArchived) {
     updatedAt: Timestamp.now()
   })
 }
+
+export async function duplicateNote(userId, note) {
+  const ref = await addDoc(collection(db, NOTES), {
+    title: note.title || '',
+    content: note.content || '',
+    color: note.color || 'DEFAULT',
+    labels: note.labels || [],
+    imageUrls: note.imageUrls || [],
+    checklist: (note.checklist || []).map(item => ({ ...item })),
+    isChecklist: note.isChecklist || false,
+    userId,
+    isPinned: false,
+    isArchived: false,
+    createdAt: serverTimestamp(),
+    updatedAt: Timestamp.now()
+  })
+  return ref.id
+}
