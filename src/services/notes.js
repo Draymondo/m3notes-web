@@ -25,9 +25,7 @@ export function subscribeNotes(userId, includeArchived, callback) {
 
   return onSnapshot(q, (snap) => {
     let notes = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-    if (!includeArchived) {
-      notes = notes.filter(n => !n.isArchived)
-    }
+    notes = notes.filter(n => includeArchived ? n.isArchived : !n.isArchived)
     callback(notes)
   }, (err) => {
     console.error('Notes subscription error:', err)
