@@ -234,19 +234,30 @@ export default function NotePage() {
             </span>
           ))}
           {labelInputOpen && (
-            <input
-              className="label-input"
-              value={newLabelText}
-              onChange={e => setNewLabelText(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addLabel()
-                }
-              }}
-              placeholder="Nouveau label"
-              autoFocus
-            />
+            <div className="label-input-row">
+              <input
+                className="label-input"
+                value={newLabelText}
+                onChange={e => setNewLabelText(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addLabel()
+                  }
+                }}
+                onBlur={() => addLabel()}
+                placeholder="Nouveau label"
+                autoFocus
+              />
+              <button
+                type="button"
+                className="label-add-btn"
+                onMouseDown={e => e.preventDefault()}
+                onClick={addLabel}
+              >
+                <Plus size={16} />
+              </button>
+            </div>
           )}
         </div>
       )}
