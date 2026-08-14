@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { subscribeNotes, deleteNote } from '../services/notes'
 import NoteCard from '../components/NoteCard'
+import ConfirmDialog from '../components/ConfirmDialog'
 import './HomePage.css'
 
 const UNDO_DELAY = 5000
@@ -22,6 +23,7 @@ export default function HomePage() {
   const [pendingDeleteId, setPendingDeleteId] = useState(null)
   const [activeLabel, setActiveLabel] = useState(null)
   const [sortBy, setSortBy] = useState('updatedAt')
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const deleteTimerRef = useRef(null)
   const processedKeyRef = useRef(null)
 
@@ -111,7 +113,7 @@ export default function HomePage() {
           <button onClick={toggle} title="Thème">
             {dark ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <button onClick={logout} title="Déconnexion">
+          <button onClick={() => setLogoutConfirmOpen(true)} title="Déconnexion">
             <LogOut size={20} />
           </button>
         </div>
@@ -196,6 +198,17 @@ export default function HomePage() {
       <button className="fab" onClick={() => navigate('/note/new')} title="Nouvelle note">
         <Plus size={26} />
       </button>
+
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        title="Se deconnecter ?"
+        confirmLabel="Se deconnecter"
+        onConfirm={() => {
+          setLogoutConfirmOpen(false)
+          logout()
+        }}
+        onCancel={() => setLogoutConfirmOpen(false)}
+      />
     </div>
   )
 }

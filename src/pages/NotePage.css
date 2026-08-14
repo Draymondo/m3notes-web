@@ -48,6 +48,10 @@
   background: rgba(0,0,0,0.06);
 }
 
+[data-theme="dark"] .icon-btn:hover {
+  background: rgba(255,255,255,0.12);
+}
+
 .icon-btn.active {
   opacity: 1;
 }
@@ -73,8 +77,8 @@
 }
 
 .color-dot.selected {
-  border-color: #202124;
-  box-shadow: 0 0 0 1px #fff;
+  border-color: var(--text);
+  box-shadow: 0 0 0 1px var(--surface);
 }
 
 .note-title-input {
@@ -266,4 +270,41 @@
 
 .label-add-btn:hover {
   opacity: 1;
+}
+
+[data-theme="dark"] .note-red { background: #5c2b29; color: #f28b82; }
+[data-theme="dark"] .note-orange { background: #614a19; color: #fbbc04; }
+[data-theme="dark"] .note-yellow { background: #635d19; color: #fff475; }
+[data-theme="dark"] .note-green { background: #345920; color: #ccff90; }
+[data-theme="dark"] .note-teal { background: #16504b; color: #a7ffeb; }
+[data-theme="dark"] .note-blue { background: #2d555e; color: #cbf0f8; }
+[data-theme="dark"] .note-darkblue { background: #1e3a5f; color: #aecbfa; }
+[data-theme="dark"] .note-purple { background: #42275a; color: #d7aefb; }
+[data-theme="dark"] .note-pink { background: #5b2c40; color: #fdcfe8; }
+[data-theme="dark"] .note-brown { background: #442f19; color: #e6c9a8; }
+[data-theme="dark"] .note-gray { background: #3c4043; color: #e8eaed; }
+
+[data-theme="dark"] .note-red .note-content-input::placeholder,
+[data-theme="dark"] .note-orange .note-content-input::placeholder,
+[data-theme="dark"] .note-yellow .note-content-input::placeholder,
+[data-theme="dark"] .note-green .note-content-input::placeholder,
+[data-theme="dark"] .note-teal .note-content-input::placeholder,
+[data-theme="dark"] .note-blue .note-content-input::placeholder,
+[data-theme="dark"] .note-darkblue .note-content-input::placeholder,
+[data-theme="dark"] .note-purple .note-content-input::placeholder,
+[data-theme="dark"] .note-pink .note-content-input::placeholder,
+[data-theme="dark"] .note-brown .note-content-input::placeholder,
+[data-theme="dark"] .note-gray .note-content-input::placeholder,
+[data-theme="dark"] .note-red .note-title-input::placeholder,
+[data-theme="dark"] .note-orange .note-title-input::placeholder,
+[data-theme="dark"] .note-yellow .note-title-input::placeholder,
+[data-theme="dark"] .note-green .note-title-input::placeholder,
+[data-theme="dark"] .note-teal .note-title-input::placeholder,
+[data-theme="dark"] .note-blue .note-title-input::placeholder,
+[data-theme="dark"] .note-darkblue .note-title-input::placeholder,
+[data-theme="dark"] .note-purple .note-title-input::placeholder,
+[data-theme="dark"] .note-pink .note-title-input::placeholder,
+[data-theme="dark"] .note-brown .note-title-input::placeholder,
+[data-theme="dark"] .note-gray .note-title-input::placeholder {
+  color: rgba(255,255,255,0.35);
 }

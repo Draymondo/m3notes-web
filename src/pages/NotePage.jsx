@@ -54,10 +54,11 @@ export default function NotePage() {
   const [checklist, setChecklist] = useState([])
   const [newItemText, setNewItemText] = useState('')
   const [loading, setLoading] = useState(!isNew)
-  const [confirmOpen, setConfirmOpen] = useState(false)
   const [labels, setLabels] = useState([])
   const [newLabelText, setNewLabelText] = useState('')
   const [labelInputOpen, setLabelInputOpen] = useState(false)
+
+  const [confirmAction, setConfirmAction] = useState(null)
 
   useEffect(() => {
     if (isNew || !user) return
@@ -151,15 +152,7 @@ export default function NotePage() {
     navigate('/')
   }
 
-  const handleDelete = () => {
-    if (!isNew) setConfirmOpen(true)
-  }
-
-  const confirmDelete = () => {
-    navigate('/', { state: { deletedNoteId: id } })
-  }
-
-  const handleDuplicate = async () => {
+  const runDuplicate = async () => {
     if (!user || isNew) return
     const cleanChecklist = checklist.filter(it => it.text.trim())
     await duplicateNote(user.uid, {
@@ -187,6 +180,38 @@ export default function NotePage() {
       await navigator.clipboard.writeText(shareText)
       alert('Copié dans le presse-papiers')
     }
+  }
+
+  const askDelete = () => {
+    if (isNew) return
+    setConfirmAction({
+      title: 'Supprimer cette note ?',
+      message: 'Cette action est definitive.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+      onConfirm: () => navigate('/', { state: { deletedNoteId: id } })
+    })
+  }
+
+  const askArchiveToggle = () => {
+    setConfirmAction({
+      title: isArchived ? 'Desarchiver cette note ?' : 'Archiver cette note ?',
+      message: isArchived
+        ? 'La note reapparaitra dans la liste principale.'
+        : 'La note sera deplacee dans les archives.',
+      confirmLabel: isArchived ? 'Desarchiver' : 'Archiver',
+      onConfirm: () => setIsArchived(!isArchived)
+    })
+  }
+
+  const askDuplicate = () => {
+    if (isNew) return
+    setConfirmAction({
+      title: 'Dupliquer cette note ?',
+      message: 'Une copie sera creee.',
+      confirmLabel: 'Dupliquer',
+      onConfirm: runDuplicate
+    })
   }
 
   if (loading) return <div className="note-page loading">Chargement…</div>
@@ -221,7 +246,7 @@ export default function NotePage() {
           </button>
           <button
             className={`icon-btn ${isArchived ? 'active' : ''}`}
-            onClick={() => setIsArchived(!isArchived)}
+            onClick={askArchiveToggle}
             title="Archiver"
           >
             <Archive size={20} />
@@ -230,12 +255,12 @@ export default function NotePage() {
             <Share2 size={20} />
           </button>
           {!isNew && (
-            <button className="icon-btn" onClick={handleDuplicate} title="Dupliquer">
+            <button className="icon-btn" onClick={askDuplicate} title="Dupliquer">
               <Copy size={20} />
             </button>
           )}
           {!isNew && (
-            <button className="icon-btn" onClick={handleDelete} title="Supprimer">
+            <button className="icon-btn" onClick={askDelete} title="Supprimer">
               <Trash2 size={20} />
             </button>
           )}
@@ -346,13 +371,16 @@ export default function NotePage() {
       )}
 
       <ConfirmDialog
-        open={confirmOpen}
-        title="Supprimer cette note ?"
-        message="Cette action est definitive."
-        confirmLabel="Supprimer"
-        danger
-        onConfirm={confirmDelete}
-        onCancel={() => setConfirmOpen(false)}
+        open={!!confirmAction}
+        title={confirmAction?.title}
+        message={confirmAction?.message}
+        confirmLabel={confirmAction?.confirmLabel}
+        danger={confirmAction?.danger}
+        onConfirm={() => {
+          confirmAction?.onConfirm()
+          setConfirmAction(null)
+        }}
+        onCancel={() => setConfirmAction(null)}
       />
     </div>
   )
