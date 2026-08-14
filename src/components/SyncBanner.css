@@ -3,15 +3,16 @@
   top: 12px;
   right: 12px;
   z-index: 1001;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: #d93025;
-  color: #fff;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: #d93025;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
   opacity: 0;
   transform: scale(0.6);
   pointer-events: none;
@@ -21,4 +22,8 @@
 .offline-badge.visible {
   opacity: 1;
   transform: scale(1);
+}
+
+[data-theme="dark"] .offline-badge {
+  color: #f28b82;
 }
