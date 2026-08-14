@@ -186,7 +186,7 @@ export default function NotePage() {
     if (isNew) return
     setConfirmAction({
       title: 'Supprimer cette note ?',
-      message: 'Cette action est definitive.',
+      message: 'La note sera deplacee vers la corbeille.',
       confirmLabel: 'Supprimer',
       danger: true,
       onConfirm: () => navigate('/', { state: { deletedNoteId: id } })

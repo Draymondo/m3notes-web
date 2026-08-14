@@ -87,3 +87,43 @@
 .label:hover {
   opacity: 0.7;
 }
+
+.trash-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.trash-actions button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.trash-actions button:hover {
+  opacity: 1;
+  background: rgba(0,0,0,0.06);
+}
+
+[data-theme="dark"] .trash-actions button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.trash-actions button.danger {
+  color: #d93025;
+}
+
+[data-theme="dark"] .trash-actions button.danger {
+  color: #f28b82;
+}

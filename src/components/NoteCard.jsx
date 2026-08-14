@@ -1,4 +1,4 @@
-import { Pin, CheckSquare, Square } from 'lucide-react'
+import { Pin, CheckSquare, Square, RotateCcw, Trash2 } from 'lucide-react'
 import './NoteCard.css'
 
 const colorClass = {
@@ -16,14 +16,14 @@ const colorClass = {
   GRAY: 'note-gray'
 }
 
-export default function NoteCard({ note, onClick, onLabelClick }) {
+export default function NoteCard({ note, onClick, onLabelClick, trashMode, onRestore, onDeleteForever }) {
   const cls = colorClass[note.color] || 'note-default'
   const checklist = note.checklist || []
   const checkedCount = checklist.filter(it => it.isChecked).length
 
   return (
-    <div className={`note-card ${cls}`} onClick={onClick}>
-      {note.isPinned && <Pin className="pin" size={16} fill="currentColor" />}
+    <div className={`note-card ${cls}`} onClick={trashMode ? undefined : onClick}>
+      {note.isPinned && !trashMode && <Pin className="pin" size={16} fill="currentColor" />}
 
       {note.title && <h3 className="note-title">{note.title}</h3>}
 
@@ -63,6 +63,19 @@ export default function NoteCard({ note, onClick, onLabelClick }) {
               {l}
             </span>
           ))}
+        </div>
+      )}
+
+      {trashMode && (
+        <div className="trash-actions">
+          <button onClick={e => { e.stopPropagation(); onRestore?.(note) }} title="Restaurer">
+            <RotateCcw size={16} />
+            <span>Restaurer</span>
+          </button>
+          <button className="danger" onClick={e => { e.stopPropagation(); onDeleteForever?.(note) }} title="Supprimer definitivement">
+            <Trash2 size={16} />
+            <span>Supprimer</span>
+          </button>
         </div>
       )}
     </div>

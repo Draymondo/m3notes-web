@@ -281,3 +281,15 @@
   background: var(--surface);
   color: var(--text);
 }
+
+.trash-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 4px 16px 10px;
+}
+
+.topbar-actions button.active {
+  background: var(--border);
+  color: var(--primary);
+}
