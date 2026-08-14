@@ -1,14 +1,24 @@
-.sync-banner {
-  position: sticky;
-  top: 0;
+.offline-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
   z-index: 1001;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #d93025;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: #b3261e;
-  color: #fff;
-  font-size: 0.8rem;
-  padding: 8px 12px;
-  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.offline-badge.visible {
+  opacity: 1;
+  transform: scale(1);
 }

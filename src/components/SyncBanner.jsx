@@ -16,12 +16,9 @@ export default function SyncBanner() {
     }
   }, [])
 
-  if (online) return null
-
   return (
-    <div className="sync-banner">
-      <WifiOff size={16} />
-      <span>Hors ligne — les changements seront synchronisés au retour du réseau</span>
+    <div className={`offline-badge ${online ? '' : 'visible'}`} title="Hors ligne — synchronisation en attente">
+      <WifiOff size={14} />
     </div>
   )
 }
