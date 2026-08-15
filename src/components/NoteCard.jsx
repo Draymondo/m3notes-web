@@ -1,4 +1,5 @@
-import { Pin, CheckSquare, Square, RotateCcw, Trash2 } from 'lucide-react'
+import { useRef } from 'react'
+import { Pin, CheckSquare, Square, RotateCcw, Trash2, CheckCircle2, Circle } from 'lucide-react'
 import './NoteCard.css'
 
 const colorClass = {
@@ -16,14 +17,79 @@ const colorClass = {
   GRAY: 'note-gray'
 }
 
-export default function NoteCard({ note, onClick, onLabelClick, trashMode, onRestore, onDeleteForever }) {
+const LONG_PRESS_MS = 450
+const MOVE_THRESHOLD = 10
+
+export default function NoteCard({
+  note, onClick, onLabelClick,
+  trashMode, onRestore, onDeleteForever,
+  selectionMode, selected, onToggleSelect, onLongPress
+}) {
   const cls = colorClass[note.color] || 'note-default'
   const checklist = note.checklist || []
   const checkedCount = checklist.filter(it => it.isChecked).length
 
+  const pressTimer = useRef(null)
+  const justLongPressed = useRef(false)
+  const startPos = useRef({ x: 0, y: 0 })
+
+  const startPress = (e) => {
+    const point = e.touches ? e.touches[0] : e
+    startPos.current = { x: point.clientX, y: point.clientY }
+    pressTimer.current = setTimeout(() => {
+      justLongPressed.current = true
+      onLongPress?.(note)
+    }, LONG_PRESS_MS)
+  }
+
+  const cancelPress = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current)
+      pressTimer.current = null
+    }
+  }
+
+  const handleTouchMove = (e) => {
+    const point = e.touches[0]
+    if (!point) return
+    const dx = Math.abs(point.clientX - startPos.current.x)
+    const dy = Math.abs(point.clientY - startPos.current.y)
+    if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+      cancelPress()
+    }
+  }
+
+  const handleCardClick = () => {
+    if (justLongPressed.current) {
+      justLongPressed.current = false
+      return
+    }
+    if (selectionMode) {
+      onToggleSelect?.(note)
+      return
+    }
+    if (trashMode) return
+    onClick?.()
+  }
+
   return (
-    <div className={`note-card ${cls}`} onClick={trashMode ? undefined : onClick}>
-      {note.isPinned && !trashMode && <Pin className="pin" size={16} fill="currentColor" />}
+    <div
+      className={`note-card ${cls} ${selected ? 'selected' : ''}`}
+      onClick={handleCardClick}
+      onTouchStart={startPress}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={cancelPress}
+      onMouseDown={startPress}
+      onMouseUp={cancelPress}
+      onMouseLeave={cancelPress}
+    >
+      {selectionMode && (
+        <span className="select-indicator">
+          {selected ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+        </span>
+      )}
+
+      {note.isPinned && !trashMode && !selectionMode && <Pin className="pin" size={16} fill="currentColor" />}
 
       {note.title && <h3 className="note-title">{note.title}</h3>}
 
@@ -54,7 +120,7 @@ export default function NoteCard({ note, onClick, onLabelClick, trashMode, onRes
               key={l}
               className="label"
               onClick={e => {
-                if (onLabelClick) {
+                if (onLabelClick && !selectionMode) {
                   e.stopPropagation()
                   onLabelClick(l)
                 }
@@ -66,13 +132,22 @@ export default function NoteCard({ note, onClick, onLabelClick, trashMode, onRes
         </div>
       )}
 
-      {trashMode && (
+      {trashMode && !selectionMode && (
         <div className="trash-actions">
-          <button onClick={e => { e.stopPropagation(); onRestore?.(note) }} title="Restaurer">
+          <button
+            onTouchStart={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onRestore?.(note) }}
+            title="Restaurer"
+          >
             <RotateCcw size={16} />
             <span>Restaurer</span>
           </button>
-          <button className="danger" onClick={e => { e.stopPropagation(); onDeleteForever?.(note) }} title="Supprimer definitivement">
+          <button
+            className="danger"
+            onTouchStart={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onDeleteForever?.(note) }}
+            title="Supprimer definitivement"
+          >
             <Trash2 size={16} />
             <span>Supprimer</span>
           </button>
