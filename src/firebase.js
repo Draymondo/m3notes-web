@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore'
+import { getFirestore, enableIndexedDbPersistence, enableNetwork, disableNetwork } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 
 const firebaseConfig = {
@@ -25,4 +25,19 @@ enableIndexedDbPersistence(db).catch((err) => {
   } else if (err.code === 'unimplemented') {
     console.warn('Persistence not available in this browser')
   }
+})
+
+// Proactively tell Firestore to stop trying to reach the server as soon as
+// the browser reports we're offline, so reads/writes fall back to the local
+// cache immediately instead of waiting on a connection timeout first.
+if (!navigator.onLine) {
+  disableNetwork(db).catch(() => {})
+}
+
+window.addEventListener('offline', () => {
+  disableNetwork(db).catch(() => {})
+})
+
+window.addEventListener('online', () => {
+  enableNetwork(db).catch(() => {})
 })
