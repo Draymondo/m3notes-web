@@ -28,11 +28,11 @@ export function subscribeNotes(userId, mode, callback) {
   return onSnapshot(q, (snap) => {
     let notes = snap.docs.map(d => ({ id: d.id, ...d.data() }))
     if (mode === 'trash') {
-      notes = notes.filter(n => n.isDeleted)
+      notes = notes.filter(n => n.isDeleted && !n.isVault)
     } else if (mode === 'archived') {
-      notes = notes.filter(n => n.isArchived && !n.isDeleted)
+      notes = notes.filter(n => n.isArchived && !n.isDeleted && !n.isVault)
     } else {
-      notes = notes.filter(n => !n.isArchived && !n.isDeleted)
+      notes = notes.filter(n => !n.isArchived && !n.isDeleted && !n.isVault)
     }
     callback(notes)
   }, (err) => {

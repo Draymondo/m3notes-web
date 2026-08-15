@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Archive, StickyNote, Sun, Moon, LogOut, Plus, Trash2 } from 'lucide-react'
+import { Archive, StickyNote, Sun, Moon, LogOut, Plus, Trash2, Lock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { subscribeNotes, moveToTrash, restoreNote, permanentlyDeleteNote, isTrashExpired } from '../services/notes'
@@ -148,6 +148,9 @@ export default function HomePage() {
             title="Corbeille"
           >
             <Trash2 size={20} />
+          </button>
+          <button onClick={() => navigate('/vault')} title="Coffre">
+            <Lock size={20} />
           </button>
           <button onClick={toggle} title="Thème">
             {dark ? <Sun size={20} /> : <Moon size={20} />}
