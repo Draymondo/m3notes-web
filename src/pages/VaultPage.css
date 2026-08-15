@@ -85,6 +85,15 @@
   border-radius: 12px;
   padding: 14px;
   cursor: pointer;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.vault-note-text {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .vault-note-text h3 {
