@@ -293,3 +293,15 @@
   background: var(--border);
   color: var(--primary);
 }
+
+.selection-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selection-count {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 500;
+}

@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Archive, StickyNote, Sun, Moon, LogOut, Plus, Trash2, Lock } from 'lucide-react'
+import { Archive, StickyNote, Sun, Moon, LogOut, Plus, Trash2, Lock, X, Pin, RotateCcw } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
-import { subscribeNotes, moveToTrash, restoreNote, permanentlyDeleteNote, isTrashExpired } from '../services/notes'
+import {
+  subscribeNotes, moveToTrash, restoreNote, permanentlyDeleteNote, isTrashExpired,
+  togglePin, toggleArchive
+} from '../services/notes'
 import NoteCard from '../components/NoteCard'
 import ConfirmDialog from '../components/ConfirmDialog'
 import './HomePage.css'
@@ -25,8 +28,11 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState('updatedAt')
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const [confirmAction, setConfirmAction] = useState(null)
+  const [selectedIds, setSelectedIds] = useState(new Set())
   const deleteTimerRef = useRef(null)
   const processedKeyRef = useRef(null)
+
+  const selectionMode = selectedIds.size > 0
 
   useEffect(() => {
     if (!user) return
@@ -63,6 +69,10 @@ export default function HomePage() {
       if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
     }
   }, [])
+
+  useEffect(() => {
+    setSelectedIds(new Set())
+  }, [viewMode])
 
   const toggleLabelFilter = (label) => {
     setActiveLabel(current => current === label ? null : label)
@@ -118,50 +128,174 @@ export default function HomePage() {
 
   const pageTitle = viewMode === 'archived' ? 'Archives' : viewMode === 'trash' ? 'Corbeille' : 'M3Notes'
 
+  const startSelection = (note) => {
+    setSelectedIds(new Set([note.id]))
+  }
+
+  const toggleSelect = (note) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(note.id)) next.delete(note.id)
+      else next.add(note.id)
+      return next
+    })
+  }
+
+  const clearSelection = () => setSelectedIds(new Set())
+
+  const selectedNotes = filtered.filter(n => selectedIds.has(n.id))
+
+  const bulkPin = () => {
+    const allPinned = selectedNotes.every(n => n.isPinned)
+    Promise.all(selectedNotes.map(n => togglePin(n.id, !allPinned)))
+      .catch(err => console.error('Bulk pin error:', err))
+      .finally(clearSelection)
+  }
+
+  const bulkArchive = () => {
+    const count = selectedIds.size
+    setConfirmAction({
+      title: `Archiver ${count} note${count > 1 ? 's' : ''} ?`,
+      message: 'Elles seront deplacees dans les archives.',
+      confirmLabel: 'Archiver',
+      onConfirm: () => {
+        Promise.all(selectedNotes.map(n => toggleArchive(n.id, true)))
+          .catch(err => console.error('Bulk archive error:', err))
+          .finally(clearSelection)
+      }
+    })
+  }
+
+  const bulkUnarchive = () => {
+    Promise.all(selectedNotes.map(n => toggleArchive(n.id, false)))
+      .catch(err => console.error('Bulk unarchive error:', err))
+      .finally(clearSelection)
+  }
+
+  const bulkDelete = () => {
+    const count = selectedIds.size
+    setConfirmAction({
+      title: `Supprimer ${count} note${count > 1 ? 's' : ''} ?`,
+      message: 'Elles seront deplacees vers la corbeille.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+      onConfirm: () => {
+        Promise.all(selectedNotes.map(n => moveToTrash(n.id)))
+          .catch(err => console.error('Bulk delete error:', err))
+          .finally(clearSelection)
+      }
+    })
+  }
+
+  const bulkRestore = () => {
+    Promise.all(selectedNotes.map(n => restoreNote(n.id)))
+      .catch(err => console.error('Bulk restore error:', err))
+      .finally(clearSelection)
+  }
+
+  const bulkDeleteForever = () => {
+    const count = selectedIds.size
+    setConfirmAction({
+      title: `Supprimer definitivement ${count} note${count > 1 ? 's' : ''} ?`,
+      message: 'Cette action est irreversible.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+      onConfirm: () => {
+        Promise.all(selectedNotes.map(n => permanentlyDeleteNote(n.id)))
+          .catch(err => console.error('Bulk delete forever error:', err))
+          .finally(clearSelection)
+      }
+    })
+  }
+
   return (
     <div className="home">
-      <header className="topbar">
-        <div className="topbar-left">
-          <h1>{pageTitle}</h1>
-        </div>
+      {selectionMode ? (
+        <header className="topbar selection-topbar">
+          <button className="icon-btn" onClick={clearSelection} title="Annuler la selection">
+            <X size={20} />
+          </button>
+          <span className="selection-count">{selectedIds.size} selectionnee(s)</span>
+          <div className="topbar-actions">
+            {viewMode === 'active' && (
+              <>
+                <button onClick={bulkPin} title="Epingler">
+                  <Pin size={20} />
+                </button>
+                <button onClick={bulkArchive} title="Archiver">
+                  <Archive size={20} />
+                </button>
+                <button onClick={bulkDelete} title="Supprimer">
+                  <Trash2 size={20} />
+                </button>
+              </>
+            )}
+            {viewMode === 'archived' && (
+              <>
+                <button onClick={bulkUnarchive} title="Desarchiver">
+                  <StickyNote size={20} />
+                </button>
+                <button onClick={bulkDelete} title="Supprimer">
+                  <Trash2 size={20} />
+                </button>
+              </>
+            )}
+            {viewMode === 'trash' && (
+              <>
+                <button onClick={bulkRestore} title="Restaurer">
+                  <RotateCcw size={20} />
+                </button>
+                <button onClick={bulkDeleteForever} title="Supprimer definitivement">
+                  <Trash2 size={20} />
+                </button>
+              </>
+            )}
+          </div>
+        </header>
+      ) : (
+        <header className="topbar">
+          <div className="topbar-left">
+            <h1>{pageTitle}</h1>
+          </div>
 
-        <div className="search-box">
-          <input
-            type="search"
-            placeholder="Rechercher…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
+          <div className="search-box">
+            <input
+              type="search"
+              placeholder="Rechercher…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
 
-        <div className="topbar-actions">
-          <button
-            className={viewMode === 'archived' ? 'active' : ''}
-            onClick={() => setView('archived')}
-            title="Archives"
-          >
-            {viewMode === 'archived' ? <StickyNote size={20} /> : <Archive size={20} />}
-          </button>
-          <button
-            className={viewMode === 'trash' ? 'active' : ''}
-            onClick={() => setView('trash')}
-            title="Corbeille"
-          >
-            <Trash2 size={20} />
-          </button>
-          <button onClick={() => navigate('/vault')} title="Coffre">
-            <Lock size={20} />
-          </button>
-          <button onClick={toggle} title="Thème">
-            {dark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <button onClick={() => setLogoutConfirmOpen(true)} title="Déconnexion">
-            <LogOut size={20} />
-          </button>
-        </div>
-      </header>
+          <div className="topbar-actions">
+            <button
+              className={viewMode === 'archived' ? 'active' : ''}
+              onClick={() => setView('archived')}
+              title="Archives"
+            >
+              {viewMode === 'archived' ? <StickyNote size={20} /> : <Archive size={20} />}
+            </button>
+            <button
+              className={viewMode === 'trash' ? 'active' : ''}
+              onClick={() => setView('trash')}
+              title="Corbeille"
+            >
+              <Trash2 size={20} />
+            </button>
+            <button onClick={() => navigate('/vault')} title="Coffre">
+              <Lock size={20} />
+            </button>
+            <button onClick={toggle} title="Thème">
+              {dark ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <button onClick={() => setLogoutConfirmOpen(true)} title="Déconnexion">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </header>
+      )}
 
-      {viewMode === 'active' && (
+      {!selectionMode && viewMode === 'active' && (
         <div className="filter-row">
           {allLabels.length > 0 && (
             <div className="label-filter-bar">
@@ -188,7 +322,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {viewMode === 'trash' && notes.length > 0 && (
+      {!selectionMode && viewMode === 'trash' && notes.length > 0 && (
         <p className="trash-hint">Les notes sont supprimees definitivement apres 7 jours</p>
       )}
 
@@ -213,6 +347,10 @@ export default function HomePage() {
                       note={note}
                       onClick={() => navigate(`/note/${note.id}`)}
                       onLabelClick={toggleLabelFilter}
+                      selectionMode={selectionMode}
+                      selected={selectedIds.has(note.id)}
+                      onToggleSelect={toggleSelect}
+                      onLongPress={startSelection}
                     />
                   ))}
                 </div>
@@ -232,6 +370,10 @@ export default function HomePage() {
                       trashMode={viewMode === 'trash'}
                       onRestore={handleRestore}
                       onDeleteForever={handleDeleteForever}
+                      selectionMode={selectionMode}
+                      selected={selectedIds.has(note.id)}
+                      onToggleSelect={toggleSelect}
+                      onLongPress={startSelection}
                     />
                   ))}
                 </div>
@@ -248,7 +390,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {viewMode === 'active' && (
+      {!selectionMode && viewMode === 'active' && (
         <button className="fab" onClick={() => navigate('/note/new')} title="Nouvelle note">
           <Plus size={26} />
         </button>
