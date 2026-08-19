@@ -37,7 +37,7 @@ export function subscribeNotes(userId, mode, callback) {
     callback(notes)
   }, (err) => {
     console.error('Notes subscription error:', err)
-    callback([])
+    callback([], err)
   })
 }
 

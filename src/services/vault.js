@@ -93,7 +93,7 @@ export function subscribeVaultNotes(userId, callback) {
     callback(notes)
   }, (err) => {
     console.error('Vault subscription error:', err)
-    callback([])
+    callback([], err)
   })
 }
 

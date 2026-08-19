@@ -28,6 +28,7 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState('updatedAt')
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const [confirmAction, setConfirmAction] = useState(null)
+  const [actionError, setActionError] = useState('')
   const [selectedIds, setSelectedIds] = useState(new Set())
   const deleteTimerRef = useRef(null)
   const processedKeyRef = useRef(null)
@@ -37,9 +38,10 @@ export default function HomePage() {
   useEffect(() => {
     if (!user) return
     setLoading(true)
-    const unsub = subscribeNotes(user.uid, viewMode, (data) => {
+      const unsub = subscribeNotes(user.uid, viewMode, (data, error) => {
       setNotes(data)
       setLoading(false)
+        setActionError(error ? 'Impossible de charger les notes.' : '')
     })
     return unsub
   }, [user, viewMode])
@@ -65,12 +67,6 @@ export default function HomePage() {
   }, [location, navigate])
 
   useEffect(() => {
-    return () => {
-      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
-    }
-  }, [])
-
-  useEffect(() => {
     setSelectedIds(new Set())
   }, [viewMode])
 
@@ -88,7 +84,10 @@ export default function HomePage() {
   }
 
   const handleRestore = (note) => {
-    restoreNote(note.id).catch(err => console.error('Restore error:', err))
+    restoreNote(note.id).catch(err => {
+      console.error('Restore error:', err)
+      setActionError('Impossible de restaurer cette note.')
+    })
   }
 
   const handleDeleteForever = (note) => {
@@ -97,7 +96,10 @@ export default function HomePage() {
       message: 'Cette action est irreversible.',
       confirmLabel: 'Supprimer',
       danger: true,
-      onConfirm: () => permanentlyDeleteNote(note.id).catch(err => console.error('Delete error:', err))
+        onConfirm: () => permanentlyDeleteNote(note.id).catch(err => {
+          console.error('Delete error:', err)
+          setActionError('Impossible de supprimer cette note.')
+        })
     })
   }
 
@@ -148,7 +150,10 @@ export default function HomePage() {
   const bulkPin = () => {
     const allPinned = selectedNotes.every(n => n.isPinned)
     Promise.all(selectedNotes.map(n => togglePin(n.id, !allPinned)))
-      .catch(err => console.error('Bulk pin error:', err))
+        .catch(err => {
+          console.error('Bulk pin error:', err)
+          setActionError('Impossible de modifier les notes sélectionnées.')
+        })
       .finally(clearSelection)
   }
 
@@ -160,7 +165,10 @@ export default function HomePage() {
       confirmLabel: 'Archiver',
       onConfirm: () => {
         Promise.all(selectedNotes.map(n => toggleArchive(n.id, true)))
-          .catch(err => console.error('Bulk archive error:', err))
+            .catch(err => {
+              console.error('Bulk archive error:', err)
+              setActionError('Impossible d’archiver les notes sélectionnées.')
+            })
           .finally(clearSelection)
       }
     })
@@ -168,7 +176,10 @@ export default function HomePage() {
 
   const bulkUnarchive = () => {
     Promise.all(selectedNotes.map(n => toggleArchive(n.id, false)))
-      .catch(err => console.error('Bulk unarchive error:', err))
+      .catch(err => {
+        console.error('Bulk unarchive error:', err)
+        setActionError('Impossible de désarchiver les notes sélectionnées.')
+      })
       .finally(clearSelection)
   }
 
@@ -181,7 +192,10 @@ export default function HomePage() {
       danger: true,
       onConfirm: () => {
         Promise.all(selectedNotes.map(n => moveToTrash(n.id)))
-          .catch(err => console.error('Bulk delete error:', err))
+            .catch(err => {
+              console.error('Bulk delete error:', err)
+              setActionError('Impossible de supprimer les notes sélectionnées.')
+            })
           .finally(clearSelection)
       }
     })
@@ -189,7 +203,10 @@ export default function HomePage() {
 
   const bulkRestore = () => {
     Promise.all(selectedNotes.map(n => restoreNote(n.id)))
-      .catch(err => console.error('Bulk restore error:', err))
+      .catch(err => {
+        console.error('Bulk restore error:', err)
+        setActionError('Impossible de restaurer les notes sélectionnées.')
+      })
       .finally(clearSelection)
   }
 
@@ -202,7 +219,10 @@ export default function HomePage() {
       danger: true,
       onConfirm: () => {
         Promise.all(selectedNotes.map(n => permanentlyDeleteNote(n.id)))
-          .catch(err => console.error('Bulk delete forever error:', err))
+            .catch(err => {
+              console.error('Bulk delete forever error:', err)
+              setActionError('Impossible de supprimer définitivement les notes sélectionnées.')
+            })
           .finally(clearSelection)
       }
     })
@@ -327,6 +347,7 @@ export default function HomePage() {
       )}
 
       <main className="notes-area">
+        {actionError && <p className="home-error" role="alert">{actionError}</p>}
         {loading ? (
           <p className="empty">Chargement…</p>
         ) : filtered.length === 0 ? (

@@ -15,8 +15,8 @@ if ('serviceWorker' in navigator) {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter basename="/m3notes-web">
+    <React.StrictMode>
+      <BrowserRouter basename={import.meta.env.DEV ? '/' : '/m3notes-web'}>
       <ThemeProvider>
         <AuthProvider>
           <App />

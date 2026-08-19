@@ -12,6 +12,16 @@ export default function NotePage() {
   const [labelInputOpen, setLabelInputOpen] = useState(false)
 
   if (note.loading) return <div className="note-page loading">Chargement…</div>
+  if (note.loadError) {
+    return (
+      <div className="note-page loading">
+        <p>{note.loadError}</p>
+        <button className="icon-btn" onClick={() => window.history.back()}>
+          Retour
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className={`note-page ${colorClass[note.color] || 'note-default'}`}>
@@ -80,6 +90,9 @@ export default function NotePage() {
         onAdd={note.addLabel}
         onRemove={note.removeLabel}
       />
+
+      {note.saveError && <p className="note-error" role="alert">{note.saveError}</p>}
+      {note.shareError && <p className="note-error" role="alert">{note.shareError}</p>}
 
       {note.isChecklist ? (
         <ChecklistEditor

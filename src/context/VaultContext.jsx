@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { useAuth } from './AuthContext'
 import { getVaultMeta, setupVault, unlockVault as unlockVaultKey } from '../services/vault'
 
@@ -8,6 +8,11 @@ export function VaultProvider({ children }) {
   const { user } = useAuth()
   const [vaultKey, setVaultKey] = useState(null)
   const [hasVault, setHasVault] = useState(null)
+
+  useEffect(() => {
+    setVaultKey(null)
+    setHasVault(null)
+  }, [user?.uid])
 
   const checkVaultExists = async () => {
     if (!user) return false

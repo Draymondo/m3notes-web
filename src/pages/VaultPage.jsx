@@ -21,15 +21,21 @@ export default function VaultPage() {
   const [rawNotes, setRawNotes] = useState([])
   const [decrypted, setDecrypted] = useState([])
   const [confirmDeleteNote, setConfirmDeleteNote] = useState(null)
+  const [subscriptionError, setSubscriptionError] = useState('')
 
   useEffect(() => {
-    checkVaultExists().finally(() => setChecking(false))
+    checkVaultExists()
+      .catch(() => setError('Impossible de vérifier le coffre.'))
+      .finally(() => setChecking(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (!user || !vaultKey) return
-    return subscribeVaultNotes(user.uid, setRawNotes)
+    return subscribeVaultNotes(user.uid, (data, error) => {
+      setRawNotes(data)
+      setSubscriptionError(error ? 'Impossible de charger les notes du coffre.' : '')
+    })
   }, [user, vaultKey])
 
   useEffect(() => {
@@ -79,10 +85,13 @@ export default function VaultPage() {
   }
 
   const confirmDelete = async () => {
-    if (confirmDeleteNote) {
+    if (!confirmDeleteNote) return
+    try {
       await deleteVaultNote(confirmDeleteNote.id)
+      setConfirmDeleteNote(null)
+    } catch {
+      setError('Impossible de supprimer cette note.')
     }
-    setConfirmDeleteNote(null)
   }
 
   if (checking) {
@@ -157,6 +166,7 @@ export default function VaultPage() {
       </header>
 
       <main className="vault-notes-area">
+          {subscriptionError && <p className="vault-error" role="alert">{subscriptionError}</p>}
         {decrypted.length === 0 ? (
           <p className="empty">Coffre vide</p>
         ) : (

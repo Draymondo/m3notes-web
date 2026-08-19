@@ -1,12 +1,14 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { VaultProvider } from './context/VaultContext'
-import LoginPage from './pages/LoginPage'
-import HomePage from './pages/HomePage'
-import NotePage from './pages/NotePage'
-import VaultPage from './pages/VaultPage'
-import VaultNotePage from './pages/VaultNotePage'
 import SyncBanner from './components/SyncBanner'
+
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const HomePage = lazy(() => import('./pages/HomePage'))
+const NotePage = lazy(() => import('./pages/NotePage'))
+const VaultPage = lazy(() => import('./pages/VaultPage'))
+const VaultNotePage = lazy(() => import('./pages/VaultNotePage'))
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -35,14 +37,16 @@ export default function App() {
   return (
     <VaultProvider>
       <SyncBanner />
-      <Routes>
-        <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-        <Route path="/" element={<PrivateRoute><HomePage /></PrivateRoute>} />
-        <Route path="/note/:id" element={<PrivateRoute><NotePage /></PrivateRoute>} />
-        <Route path="/vault" element={<PrivateRoute><VaultPage /></PrivateRoute>} />
-        <Route path="/vault/:id" element={<PrivateRoute><VaultNotePage /></PrivateRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<div className="loading-screen">Chargement…</div>}>
+        <Routes>
+          <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+          <Route path="/" element={<PrivateRoute><HomePage /></PrivateRoute>} />
+          <Route path="/note/:id" element={<PrivateRoute><NotePage /></PrivateRoute>} />
+          <Route path="/vault" element={<PrivateRoute><VaultPage /></PrivateRoute>} />
+          <Route path="/vault/:id" element={<PrivateRoute><VaultNotePage /></PrivateRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </VaultProvider>
   )
 }

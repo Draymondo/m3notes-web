@@ -21,24 +21,41 @@ export function useNote() {
   const [checklist, setChecklist] = useState([])
   const [labels, setLabels] = useState([])
   const [loading, setLoading] = useState(!isNew)
+  const [loadError, setLoadError] = useState('')
+  const [saveError, setSaveError] = useState('')
+  const [shareError, setShareError] = useState('')
   const [confirmAction, setConfirmAction] = useState(null)
 
   useEffect(() => {
     if (isNew || !user) return
+    let cancelled = false
+    setLoading(true)
+    setLoadError('')
     getDoc(doc(db, 'notes', id)).then(snap => {
-      if (snap.exists()) {
-        const data = snap.data()
-        setTitle(data.title || '')
-        setContent(data.content || '')
-        setColor(data.color || 'DEFAULT')
-        setIsPinned(data.isPinned || false)
-        setIsArchived(data.isArchived || false)
-        setIsChecklist(data.isChecklist || false)
-        setChecklist(data.checklist || [])
-        setLabels(data.labels || [])
+      if (cancelled) return
+      if (!snap.exists()) {
+        setLoadError('Cette note est introuvable.')
+        return
       }
-      setLoading(false)
+      const data = snap.data()
+      if (data.userId !== user.uid || data.isVault) {
+        setLoadError('Cette note n’est pas accessible ici.')
+        return
+      }
+      setTitle(data.title || '')
+      setContent(data.content || '')
+      setColor(data.color || 'DEFAULT')
+      setIsPinned(data.isPinned || false)
+      setIsArchived(data.isArchived || false)
+      setIsChecklist(data.isChecklist || false)
+      setChecklist(data.checklist || [])
+      setLabels(data.labels || [])
+    }).catch(() => {
+      if (!cancelled) setLoadError('Impossible de charger cette note.')
+    }).finally(() => {
+      if (!cancelled) setLoading(false)
     })
+    return () => { cancelled = true }
   }, [id, isNew, user])
 
   const addItem = (text) => {
@@ -82,6 +99,7 @@ export function useNote() {
 
   const save = async () => {
     if (!user) return
+    setSaveError('')
     const cleanChecklist = checklist.filter(it => it.text.trim())
     const data = {
       title: title.trim(),
@@ -94,16 +112,20 @@ export function useNote() {
       labels
     }
     const isEmpty = !data.title && !data.content && (!isChecklist || cleanChecklist.length === 0)
-    if (isNew) {
-      if (isEmpty) {
-        navigate('/')
-        return
+    try {
+      if (isNew) {
+        if (isEmpty) {
+          navigate('/')
+          return
+        }
+        await createNote(user.uid, data)
+      } else {
+        await updateNote(id, data)
       }
-      await createNote(user.uid, data)
-    } else {
-      await updateNote(id, data)
+      navigate('/')
+    } catch {
+      setSaveError('Impossible d’enregistrer la note.')
     }
-    navigate('/')
   }
 
   const runDuplicate = async () => {
@@ -121,6 +143,7 @@ export function useNote() {
   }
 
   const handleShare = async () => {
+    setShareError('')
     const shareText = [title.trim(), isChecklist ? checklist.map(it => `- ${it.text}`).join('\n') : content.trim()]
       .filter(Boolean)
       .join('\n\n')
@@ -128,11 +151,21 @@ export function useNote() {
       try {
         await navigator.share({ title: title.trim() || 'Note', text: shareText })
       } catch (err) {
-        if (err.name !== 'AbortError') console.error('Share error:', err)
+          if (err.name !== 'AbortError') {
+            console.error('Share error:', err)
+            setShareError('Impossible de partager cette note.')
+          }
       }
     } else if (navigator.clipboard) {
-      await navigator.clipboard.writeText(shareText)
-      alert('Copié dans le presse-papiers')
+        try {
+          await navigator.clipboard.writeText(shareText)
+          alert('Copié dans le presse-papiers')
+        } catch (err) {
+          console.error('Clipboard error:', err)
+          setShareError('Impossible de copier cette note.')
+        }
+      } else {
+        setShareError('Le partage n’est pas disponible dans ce navigateur.')
     }
   }
 
@@ -186,7 +219,7 @@ export function useNote() {
     checklist, addItem, updateItemText, toggleItem, removeItem,
     labels, addLabel, removeLabel,
     switchToChecklist, switchToText,
-    save,
+    save, loadError, saveError, shareError,
     handleShare,
     askDelete, askArchiveToggle, askDuplicate,
     confirmAction, confirmAndRun, cancelConfirm
