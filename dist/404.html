@@ -12,16 +12,41 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="M3Notes" />
     <title>M3Notes</title>
-    <script type="module" crossorigin src="/m3notes-web/assets/index-DCuhKlDx.js"></script>
-    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/react-D-wvV9gT.js">
-    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/firebase-core-CqpQgNwS.js">
-    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/firebase-auth-Cl1myqcF.js">
-    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/firebase-firestore-DyZUd-xv.js">
-    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/firebase-storage-B0bx3WzX.js">
-    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/icons-CH4j7qcZ.js">
+    <style>
+      /* Rendu sans dépendre du JS : évite l'écran blanc pendant le
+         téléchargement/l'exécution des scripts. React remplace ce contenu
+         dès son premier rendu. */
+      html, body { background: #ffffff; }
+      @media (prefers-color-scheme: dark) {
+        html, body { background: #171717; }
+      }
+      .initial-loader {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .initial-loader svg {
+        animation: initial-loader-spin 0.9s linear infinite;
+      }
+      @keyframes initial-loader-spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+    <script type="module" crossorigin src="/m3notes-web/assets/index-DWFYmiAi.js"></script>
+    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/react-BuKqQC-W.js">
+    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/firebase-core-BKVkiGoc.js">
+    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/firebase-auth-tE03Xl5_.js">
+    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/icons-CH7nwaa9.js">
     <link rel="stylesheet" crossorigin href="/m3notes-web/assets/index-DUk-gwg6.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-loader">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="#1a73e8" stroke-width="3" stroke-linecap="round" stroke-dasharray="42 100" />
+        </svg>
+      </div>
+    </div>
   </body>
 </html>
