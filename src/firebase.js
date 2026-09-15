@@ -31,14 +31,13 @@ let dbLoad = null
 function loadFirestore() {
   if (!dbLoad) {
     dbLoad = import('firebase/firestore').then((mod) => {
-      const db = mod.getFirestore(app)
-
-      mod.enableIndexedDbPersistence(db).catch((err) => {
-        if (err.code === 'failed-precondition') {
-          console.warn('Persistence failed: multiple tabs open')
-        } else if (err.code === 'unimplemented') {
-          console.warn('Persistence not available in this browser')
-        }
+      // enableIndexedDbPersistence est dépréciée depuis le SDK modulaire :
+      // la persistance se configure maintenant directement à
+      // l'initialisation via localCache.
+      const db = mod.initializeFirestore(app, {
+        localCache: mod.persistentLocalCache({
+          tabManager: mod.persistentSingleTabManager()
+        })
       })
 
       // Si on est déjà hors-ligne au moment où Firestore démarre, basculer

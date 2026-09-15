@@ -41,7 +41,7 @@ function swPrecache() {
         return files
       }
 
-      const assetPaths = collect(outputDir).map((f) => BASE + f).sort()
+      const assetPaths = collect(outputDir).map((f) => BASE + f).sort((a, b) => a.localeCompare(b))
       const precacheUrls = [BASE, ...assetPaths]
       const version = createHash('sha256').update(assetPaths.join(',')).digest('hex').slice(0, 10)
 

@@ -46,6 +46,11 @@ export async function decryptText(key, payload) {
   return new TextDecoder().decode(plainBuf)
 }
 
+async function patchVaultNote(noteId, fields) {
+  const { db, updateDoc, doc, Timestamp } = await getFirestoreCtx()
+  await updateDoc(doc(db, NOTES, noteId), { ...fields, updatedAt: Timestamp.now() })
+}
+
 export async function getVaultMeta(userId) {
   const { db, doc, getDoc } = await getFirestoreCtx()
   const snap = await getDoc(doc(db, 'vaultMeta', userId))
@@ -124,14 +129,9 @@ export async function createVaultNote(userId, key, { title, content }) {
 }
 
 export async function updateVaultNote(noteId, key, { title, content }) {
-  const { db, updateDoc, doc, Timestamp } = await getFirestoreCtx()
   const encTitle = await encryptText(key, title)
   const encContent = await encryptText(key, content)
-  await updateDoc(doc(db, NOTES, noteId), {
-    encTitle,
-    encContent,
-    updatedAt: Timestamp.now()
-  })
+  return patchVaultNote(noteId, { encTitle, encContent })
 }
 
 export async function deleteVaultNote(noteId) {
