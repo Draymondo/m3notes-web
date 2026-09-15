@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { doc, getDoc } from 'firebase/firestore'
 import { v4 as uuidv4 } from 'uuid'
 import { useAuth } from '../context/AuthContext'
-import { db } from '../firebase'
+import { getFirestoreCtx } from '../firebase'
 import { createNote, updateNote, duplicateNote } from '../services/notes'
 
 export function useNote() {
@@ -31,7 +30,7 @@ export function useNote() {
     let cancelled = false
     setLoading(true)
     setLoadError('')
-    getDoc(doc(db, 'notes', id)).then(snap => {
+    getFirestoreCtx().then(({ db, doc, getDoc }) => getDoc(doc(db, 'notes', id))).then(snap => {
       if (cancelled) return
       if (!snap.exists()) {
         setLoadError('Cette note est introuvable.')

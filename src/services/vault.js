@@ -1,10 +1,4 @@
-import {
-  doc, getDoc, setDoc,
-  collection, query, where, orderBy, onSnapshot,
-  addDoc, updateDoc, deleteDoc,
-  serverTimestamp, Timestamp
-} from 'firebase/firestore'
-import { db } from '../firebase'
+import { getFirestoreCtx } from '../firebase'
 
 const NOTES = 'notes'
 const PBKDF2_ITERATIONS = 250000
@@ -53,11 +47,13 @@ export async function decryptText(key, payload) {
 }
 
 export async function getVaultMeta(userId) {
+  const { db, doc, getDoc } = await getFirestoreCtx()
   const snap = await getDoc(doc(db, 'vaultMeta', userId))
   return snap.exists() ? snap.data() : null
 }
 
 export async function setupVault(userId, password) {
+  const { db, doc, setDoc } = await getFirestoreCtx()
   const saltBytes = crypto.getRandomValues(new Uint8Array(16))
   const saltB64 = bufToB64(saltBytes.buffer)
   const key = await deriveKey(password, saltB64)
@@ -80,24 +76,36 @@ export async function unlockVault(userId, password) {
 }
 
 export function subscribeVaultNotes(userId, callback) {
-  const q = query(
-    collection(db, NOTES),
-    where('userId', '==', userId),
-    orderBy('isPinned', 'desc'),
-    orderBy('updatedAt', 'desc')
-  )
-  return onSnapshot(q, (snap) => {
-    const notes = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(n => n.isVault)
-    callback(notes)
-  }, (err) => {
-    console.error('Vault subscription error:', err)
-    callback([], err)
+  let unsub = null
+  let cancelled = false
+
+  getFirestoreCtx().then(({ db, collection, query, where, orderBy, onSnapshot }) => {
+    if (cancelled) return
+    const q = query(
+      collection(db, NOTES),
+      where('userId', '==', userId),
+      orderBy('isPinned', 'desc'),
+      orderBy('updatedAt', 'desc')
+    )
+    unsub = onSnapshot(q, (snap) => {
+      const notes = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(n => n.isVault)
+      callback(notes)
+    }, (err) => {
+      console.error('Vault subscription error:', err)
+      callback([], err)
+    })
   })
+
+  return () => {
+    cancelled = true
+    if (unsub) unsub()
+  }
 }
 
 export async function createVaultNote(userId, key, { title, content }) {
+  const { db, addDoc, collection, serverTimestamp, Timestamp } = await getFirestoreCtx()
   const encTitle = await encryptText(key, title)
   const encContent = await encryptText(key, content)
   const ref = await addDoc(collection(db, NOTES), {
@@ -116,6 +124,7 @@ export async function createVaultNote(userId, key, { title, content }) {
 }
 
 export async function updateVaultNote(noteId, key, { title, content }) {
+  const { db, updateDoc, doc, Timestamp } = await getFirestoreCtx()
   const encTitle = await encryptText(key, title)
   const encContent = await encryptText(key, content)
   await updateDoc(doc(db, NOTES, noteId), {
@@ -126,6 +135,7 @@ export async function updateVaultNote(noteId, key, { title, content }) {
 }
 
 export async function deleteVaultNote(noteId) {
+  const { db, deleteDoc, doc } = await getFirestoreCtx()
   await deleteDoc(doc(db, NOTES, noteId))
 }
 

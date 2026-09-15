@@ -1,36 +1,58 @@
-const CACHE_NAME = 'm3notes-cache-v1'
+// La version de cache et la liste de précache ci-dessous sont injectées au
+// build par le plugin sw-precache de vite.config.js, à partir du contenu
+// réel de dist/. En dev (npm run dev), ce fichier n'est pas enregistré
+// comme SW (voir main.jsx) donc ce template n'est jamais exécuté tel quel.
+const CACHE_NAME = 'm3notes-shell-12da05185d'
+const PRECACHE_URLS = ["/m3notes-web/","/m3notes-web/apple-touch-icon.png","/m3notes-web/assets/ConfirmDialog-67BJSDFm.js","/m3notes-web/assets/ConfirmDialog-D3dsECrb.css","/m3notes-web/assets/HomePage-CB1lOfbP.css","/m3notes-web/assets/HomePage-Ccupgk2r.js","/m3notes-web/assets/LoginPage-Bl6EQU8D.css","/m3notes-web/assets/LoginPage-G8TSpVlt.js","/m3notes-web/assets/NotePage-Bak_VGlv.js","/m3notes-web/assets/NotePage-BgQov32W.css","/m3notes-web/assets/VaultNotePage-Cbd5mnLT.js","/m3notes-web/assets/VaultNotePage-DKFkEcYX.css","/m3notes-web/assets/VaultPage-Dyciu6DH.js","/m3notes-web/assets/VaultPage-rTnqTllu.css","/m3notes-web/assets/firebase-auth-tE03Xl5_.js","/m3notes-web/assets/firebase-core-BKVkiGoc.js","/m3notes-web/assets/firebase-firestore-InLXtzGG.js","/m3notes-web/assets/icons-CH7nwaa9.js","/m3notes-web/assets/index-BcM_MLlv.js","/m3notes-web/assets/index-DUk-gwg6.css","/m3notes-web/assets/notes-CGhoVjyK.js","/m3notes-web/assets/react-BuKqQC-W.js","/m3notes-web/favicon.svg","/m3notes-web/icon-192.png","/m3notes-web/icon-512.png","/m3notes-web/index.html","/m3notes-web/manifest.json"]
 
-self.addEventListener('install', () => {
-  self.skipWaiting()
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
+  )
 })
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   )
-  self.clients.claim()
 })
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return
+  const { request } = event
+  if (request.method !== 'GET') return
+
+  const url = new URL(request.url)
+  // Ne jamais intercepter les requêtes cross-origin (Firestore, Auth,
+  // Storage...) : les mettre en cache ici n'aurait pas de sens et ça
+  // ralentissait/perturbait le canal temps réel de Firestore.
+  if (url.origin !== self.location.origin) return
 
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      try {
-        const response = await fetch(event.request)
-          if (response.ok) cache.put(event.request, response.clone())
-        return response
-      } catch (err) {
-        const cached = await cache.match(event.request)
-        if (cached) return cached
-        if (event.request.mode === 'navigate') {
-          const fallback = await cache.match(self.registration.scope)
-          if (fallback) return fallback
-        }
-        throw err
-      }
+    caches.match(request).then((cached) => {
+      // App shell : servi depuis le cache en premier (rapide, y compris
+      // hors-ligne), avec mise à jour silencieuse en arrière-plan si une
+      // ressource non précachée doit être récupérée.
+      if (cached) return cached
+
+      return fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(async () => {
+          if (request.mode === 'navigate') {
+            const shell = await caches.match(self.registration.scope)
+            if (shell) return shell
+          }
+          throw new Error('network-and-cache-miss')
+        })
     })
   )
 })

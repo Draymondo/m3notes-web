@@ -12,9 +12,36 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="M3Notes" />
     <title>M3Notes</title>
+    <style>
+      /* Rendu sans dépendre du JS : évite l'écran blanc pendant le
+         téléchargement/l'exécution des scripts. React remplace ce contenu
+         dès son premier rendu. */
+      html, body { background: #ffffff; }
+      @media (prefers-color-scheme: dark) {
+        html, body { background: #171717; }
+      }
+      .initial-loader {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .initial-loader svg {
+        animation: initial-loader-spin 0.9s linear infinite;
+      }
+      @keyframes initial-loader-spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-loader">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="#1a73e8" stroke-width="3" stroke-linecap="round" stroke-dasharray="42 100" />
+        </svg>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

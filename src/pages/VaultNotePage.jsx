@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { doc, getDoc } from 'firebase/firestore'
 import { ArrowLeft, LockKeyhole } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useVault } from '../context/VaultContext'
-import { db } from '../firebase'
+import { getFirestoreCtx } from '../firebase'
 import { createVaultNote, updateVaultNote, decryptVaultNote } from '../services/vault'
 import './VaultNotePage.css'
 
@@ -29,7 +28,7 @@ export default function VaultNotePage() {
     if (isNew) return
       let cancelled = false
       setLoadError('')
-      getDoc(doc(db, 'notes', id)).then(async (snap) => {
+      getFirestoreCtx().then(({ db, doc, getDoc }) => getDoc(doc(db, 'notes', id))).then(async (snap) => {
         if (cancelled) return
         if (!snap.exists() || snap.data().userId !== user?.uid || !snap.data().isVault) {
           setLoadError('Cette note du coffre est introuvable.')
