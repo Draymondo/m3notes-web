@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { VaultProvider } from './context/VaultContext'
+import ExportLauncher from './components/ExportLauncher'
 import HomePage from './pages/HomePage'
 import NotePage from './pages/NotePage'
 import LoginPage from './pages/LoginPage'
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/vault/note/:id" element={<VaultNotePage />} />
               <Route path="/export" element={<ExportPage />} />
             </Routes>
+            <ExportLauncher />
           </VaultProvider>
         </ThemeProvider>
       </AuthProvider>
