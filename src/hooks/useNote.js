@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
 import { useAuth } from '../context/AuthContext'
 import { getFirestoreCtx } from '../firebase'
-import { createNote, updateNote, duplicateNote } from '../services/notes'
+import { createNote, updateNoteWithHistory, duplicateNote, subscribeNoteHistory, restoreHistoryVersion } from '../services/notes'
 
 export function useNote() {
   const { id } = useParams()
@@ -17,10 +17,15 @@ export function useNote() {
   const [content, setContent] = useState('')
   const [color, setColor] = useState('DEFAULT')
   const [isPinned, setIsPinned] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(false)
   const [isArchived, setIsArchived] = useState(false)
   const [isChecklist, setIsChecklist] = useState(false)
   const [checklist, setChecklist] = useState([])
   const [labels, setLabels] = useState([])
+  const [history, setHistory] = useState([])
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [historyError, setHistoryError] = useState('')
   const [loading, setLoading] = useState(!isNew)
   const [loadError, setLoadError] = useState('')
   const [saveError, setSaveError] = useState('')
@@ -32,6 +37,7 @@ export function useNote() {
     setContent(data.content || '')
     setColor(data.color || 'DEFAULT')
     setIsPinned(data.isPinned || false)
+    setIsFavorite(data.isFavorite || false)
     setIsArchived(data.isArchived || false)
     setIsChecklist(data.isChecklist || false)
     setChecklist(data.checklist || [])
@@ -42,8 +48,6 @@ export function useNote() {
     if (isNew || !user) return
 
     if (passedNote) {
-      // La note est déjà connue (liste synchronisée en temps réel côté
-      // Home) : on l'affiche immédiatement, sans aller-retour réseau.
       applyNoteData(passedNote)
       setLoading(false)
       setLoadError('')
@@ -73,29 +77,35 @@ export function useNote() {
     return () => { cancelled = true }
   }, [id, isNew, user, passedNote])
 
+  useEffect(() => {
+    if (isNew || !id) return
+    setHistoryLoading(true)
+    setHistoryError('')
+    return subscribeNoteHistory(id, (items, err) => {
+      setHistoryLoading(false)
+      if (err) {
+        setHistoryError('Impossible de charger l’historique.')
+        return
+      }
+      setHistory(items)
+    })
+  }, [id, isNew])
+
   const addItem = (text) => {
     const trimmed = text.trim()
     if (!trimmed) return
     setChecklist(prev => [...prev, { id: uuidv4(), text: trimmed, isChecked: false }])
   }
-  const updateItemText = (itemId, text) => {
-    setChecklist(prev => prev.map(it => it.id === itemId ? { ...it, text } : it))
-  }
-  const toggleItem = (itemId) => {
-    setChecklist(prev => prev.map(it => it.id === itemId ? { ...it, isChecked: !it.isChecked } : it))
-  }
-  const removeItem = (itemId) => {
-    setChecklist(prev => prev.filter(it => it.id !== itemId))
-  }
+  const updateItemText = (itemId, text) => setChecklist(prev => prev.map(it => it.id === itemId ? { ...it, text } : it))
+  const toggleItem = (itemId) => setChecklist(prev => prev.map(it => it.id === itemId ? { ...it, isChecked: !it.isChecked } : it))
+  const removeItem = (itemId) => setChecklist(prev => prev.filter(it => it.id !== itemId))
 
   const addLabel = (text) => {
     const trimmed = text.trim()
     if (!trimmed) return
     setLabels(prev => prev.includes(trimmed) ? prev : [...prev, trimmed])
   }
-  const removeLabel = (label) => {
-    setLabels(prev => prev.filter(l => l !== label))
-  }
+  const removeLabel = (label) => setLabels(prev => prev.filter(l => l !== label))
 
   const switchToChecklist = () => {
     if (content.trim() && checklist.length === 0) {
@@ -106,9 +116,7 @@ export function useNote() {
     setIsChecklist(true)
   }
   const switchToText = () => {
-    if (checklist.length > 0 && !content.trim()) {
-      setContent(checklist.map(it => it.text).join('\n'))
-    }
+    if (checklist.length > 0 && !content.trim()) setContent(checklist.map(it => it.text).join('\n'))
     setIsChecklist(false)
   }
 
@@ -121,6 +129,7 @@ export function useNote() {
       content: isChecklist ? '' : content.trim(),
       color,
       isPinned,
+      isFavorite,
       isArchived,
       isChecklist,
       checklist: isChecklist ? cleanChecklist : [],
@@ -135,7 +144,7 @@ export function useNote() {
         }
         await createNote(user.uid, data)
       } else {
-        await updateNote(id, data)
+        await updateNoteWithHistory(id, data)
       }
       navigate('/')
     } catch {
@@ -143,100 +152,55 @@ export function useNote() {
     }
   }
 
+  const restoreVersion = async (version) => {
+    setHistoryError('')
+    try {
+      await restoreHistoryVersion(id, version.id)
+      applyNoteData(version)
+      setHistoryOpen(false)
+    } catch {
+      setHistoryError('Impossible de restaurer cette version.')
+    }
+  }
+
   const runDuplicate = async () => {
     if (!user || isNew) return
     const cleanChecklist = checklist.filter(it => it.text.trim())
-    await duplicateNote(user.uid, {
-      title: title.trim(),
-      content: isChecklist ? '' : content.trim(),
-      color,
-      labels,
-      isChecklist,
-      checklist: isChecklist ? cleanChecklist : []
-    })
+    await duplicateNote(user.uid, { title: title.trim(), content: isChecklist ? '' : content.trim(), color, labels, isChecklist, checklist: isChecklist ? cleanChecklist : [] })
     navigate('/')
   }
 
   const handleShare = async () => {
     setShareError('')
-    const shareText = [title.trim(), isChecklist ? checklist.map(it => `- ${it.text}`).join('\n') : content.trim()]
-      .filter(Boolean)
-      .join('\n\n')
+    const shareText = [title.trim(), isChecklist ? checklist.map(it => `- ${it.text}`).join('\n') : content.trim()].filter(Boolean).join('\n\n')
     if (navigator.share) {
-      try {
-        await navigator.share({ title: title.trim() || 'Note', text: shareText })
-      } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error('Share error:', err)
-            setShareError('Impossible de partager cette note.')
-          }
-      }
+      try { await navigator.share({ title: title.trim() || 'Note', text: shareText }) }
+      catch (err) { if (err.name !== 'AbortError') setShareError('Impossible de partager cette note.') }
     } else if (navigator.clipboard) {
-        try {
-          await navigator.clipboard.writeText(shareText)
-          alert('Copié dans le presse-papiers')
-        } catch (err) {
-          console.error('Clipboard error:', err)
-          setShareError('Impossible de copier cette note.')
-        }
-      } else {
-        setShareError('Le partage n’est pas disponible dans ce navigateur.')
-    }
+      try { await navigator.clipboard.writeText(shareText); alert('Copié dans le presse-papiers') }
+      catch { setShareError('Impossible de copier cette note.') }
+    } else setShareError('Le partage n’est pas disponible dans ce navigateur.')
   }
 
   const askDelete = () => {
     if (isNew) return
-    setConfirmAction({
-      title: 'Supprimer cette note ?',
-      message: 'La note sera deplacee vers la corbeille.',
-      confirmLabel: 'Supprimer',
-      danger: true,
-      onConfirm: () => navigate('/', { state: { deletedNoteId: id } })
-    })
+    setConfirmAction({ title: 'Supprimer cette note ?', message: 'La note sera déplacée vers la corbeille.', confirmLabel: 'Supprimer', danger: true, onConfirm: () => navigate('/', { state: { deletedNoteId: id } }) })
   }
-
-  const askArchiveToggle = () => {
-    setConfirmAction({
-      title: isArchived ? 'Desarchiver cette note ?' : 'Archiver cette note ?',
-      message: isArchived
-        ? 'La note reapparaitra dans la liste principale.'
-        : 'La note sera deplacee dans les archives.',
-      confirmLabel: isArchived ? 'Desarchiver' : 'Archiver',
-      onConfirm: () => setIsArchived(!isArchived)
-    })
-  }
-
+  const askArchiveToggle = () => setConfirmAction({ title: isArchived ? 'Désarchiver cette note ?' : 'Archiver cette note ?', message: isArchived ? 'La note réapparaîtra dans la liste principale.' : 'La note sera déplacée dans les archives.', confirmLabel: isArchived ? 'Désarchiver' : 'Archiver', onConfirm: () => setIsArchived(!isArchived) })
   const askDuplicate = () => {
     if (isNew) return
-    setConfirmAction({
-      title: 'Dupliquer cette note ?',
-      message: 'Une copie sera creee.',
-      confirmLabel: 'Dupliquer',
-      onConfirm: runDuplicate
-    })
+    setConfirmAction({ title: 'Dupliquer cette note ?', message: 'Une copie sera créée.', confirmLabel: 'Dupliquer', onConfirm: runDuplicate })
   }
-
-  const confirmAndRun = () => {
-    confirmAction?.onConfirm()
-    setConfirmAction(null)
-  }
-
+  const confirmAndRun = () => { confirmAction?.onConfirm(); setConfirmAction(null) }
   const cancelConfirm = () => setConfirmAction(null)
 
   return {
-    isNew, loading,
-    title, setTitle,
-    content, setContent,
-    color, setColor,
-    isPinned, setIsPinned,
-    isArchived,
-    isChecklist,
+    isNew, loading, title, setTitle, content, setContent, color, setColor,
+    isPinned, setIsPinned, isFavorite, setIsFavorite, isArchived, isChecklist,
     checklist, addItem, updateItemText, toggleItem, removeItem,
-    labels, addLabel, removeLabel,
-    switchToChecklist, switchToText,
-    save, loadError, saveError, shareError,
-    handleShare,
-    askDelete, askArchiveToggle, askDuplicate,
-    confirmAction, confirmAndRun, cancelConfirm
+    labels, addLabel, removeLabel, switchToChecklist, switchToText,
+    save, loadError, saveError, shareError, handleShare, askDelete, askArchiveToggle,
+    askDuplicate, confirmAction, confirmAndRun, cancelConfirm,
+    history, historyOpen, setHistoryOpen, historyLoading, historyError, restoreVersion
   }
 }
