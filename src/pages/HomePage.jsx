@@ -366,7 +366,7 @@ export default function HomePage() {
                     <NoteCard
                       key={note.id}
                       note={note}
-                      onClick={() => navigate(`/note/${note.id}`)}
+                      onClick={() => navigate(`/note/${note.id}`, { state: { note } })}
                       onLabelClick={toggleLabelFilter}
                       selectionMode={selectionMode}
                       selected={selectedIds.has(note.id)}
@@ -386,7 +386,7 @@ export default function HomePage() {
                     <NoteCard
                       key={note.id}
                       note={note}
-                      onClick={() => navigate(`/note/${note.id}`)}
+                      onClick={() => navigate(`/note/${note.id}`, { state: { note } })}
                       onLabelClick={toggleLabelFilter}
                       trashMode={viewMode === 'trash'}
                       onRestore={handleRestore}
