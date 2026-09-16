@@ -19,11 +19,7 @@ async function addNoteDoc(fields) {
 }
 
 export function subscribeNotes(userId, mode, callback) {
-  // mode: 'active' | 'archived' | 'trash'
-  // L'abonnement Firestore démarre dès que getFirestoreCtx() résout
-  // (Firestore chargé), mais on retourne tout de suite une fonction de
-  // désabonnement synchrone pour que les appelants (useEffect) n'aient
-  // rien à changer.
+  // mode: 'active' | 'archived' | 'trash' | 'favorites'
   let unsub = null
   let cancelled = false
 
@@ -41,6 +37,8 @@ export function subscribeNotes(userId, mode, callback) {
         notes = notes.filter(n => n.isDeleted && !n.isVault)
       } else if (mode === 'archived') {
         notes = notes.filter(n => n.isArchived && !n.isDeleted && !n.isVault)
+      } else if (mode === 'favorites') {
+        notes = notes.filter(n => n.isFavorite && !n.isArchived && !n.isDeleted && !n.isVault)
       } else {
         notes = notes.filter(n => !n.isArchived && !n.isDeleted && !n.isVault)
       }
@@ -62,6 +60,7 @@ export async function createNote(userId, data) {
     ...data,
     userId,
     isPinned: false,
+    isFavorite: false,
     isArchived: false,
     isDeleted: false,
     deletedAt: null,
@@ -102,6 +101,10 @@ export async function togglePin(noteId, isPinned) {
   return patchNote(noteId, { isPinned })
 }
 
+export async function toggleFavorite(noteId, isFavorite) {
+  return patchNote(noteId, { isFavorite })
+}
+
 export async function toggleArchive(noteId, isArchived) {
   return patchNote(noteId, { isArchived })
 }
@@ -117,6 +120,7 @@ export async function duplicateNote(userId, note) {
     isChecklist: note.isChecklist || false,
     userId,
     isPinned: false,
+    isFavorite: false,
     isArchived: false,
     isDeleted: false,
     deletedAt: null
