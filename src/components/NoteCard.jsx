@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { Pin, CheckSquare, Square, RotateCcw, Trash2, CheckCircle2, Circle } from 'lucide-react'
+import { Pin, Star, CheckSquare, Square, RotateCcw, Trash2, CheckCircle2, Circle } from 'lucide-react'
 import './NoteCard.css'
 
 const colorClass = {
@@ -21,7 +21,7 @@ const LONG_PRESS_MS = 450
 const MOVE_THRESHOLD = 10
 
 export default function NoteCard({
-  note, onClick, onLabelClick,
+  note, onClick, onLabelClick, onFavoriteToggle,
   trashMode, onRestore, onDeleteForever,
   selectionMode, selected, onToggleSelect, onLongPress
 }) {
@@ -89,7 +89,23 @@ export default function NoteCard({
         </span>
       )}
 
-      {note.isPinned && !trashMode && !selectionMode && <Pin className="pin" size={16} fill="currentColor" />}
+      {!trashMode && !selectionMode && (
+        <div className="note-card-actions">
+          {note.isPinned && <Pin className="pin" size={16} fill="currentColor" />}
+          <button
+            className={`favorite-btn ${note.isFavorite ? 'active' : ''}`}
+            onTouchStart={e => e.stopPropagation()}
+            onClick={e => {
+              e.stopPropagation()
+              onFavoriteToggle?.(note)
+            }}
+            title={note.isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            aria-label={note.isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+          >
+            <Star size={16} fill={note.isFavorite ? 'currentColor' : 'none'} />
+          </button>
+        </div>
+      )}
 
       {note.title && <h3 className="note-title">{note.title}</h3>}
 
