@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Archive, StickyNote, Sun, Moon, LogOut, Plus, Trash2, Lock, X, Pin, RotateCcw } from 'lucide-react'
+import { Archive, StickyNote, Star, Sun, Moon, LogOut, Plus, Trash2, Lock, X, Pin, RotateCcw } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import {
   subscribeNotes, moveToTrash, restoreNote, permanentlyDeleteNote, isTrashExpired,
-  togglePin, toggleArchive
+  togglePin, toggleFavorite, toggleArchive
 } from '../services/notes'
 import NoteCard from '../components/NoteCard'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -13,9 +13,6 @@ import './HomePage.css'
 
 const UNDO_DELAY = 5000
 
-// Persiste tant que le module reste chargé (traversée de route SPA), donc
-// survit au démontage/remontage de HomePage entre l'ouverture d'une note
-// et le retour à la liste.
 let lastScrollY = 0
 
 export default function HomePage() {
@@ -49,10 +46,10 @@ export default function HomePage() {
   useEffect(() => {
     if (!user) return
     setLoading(true)
-      const unsub = subscribeNotes(user.uid, viewMode, (data, error) => {
+    const unsub = subscribeNotes(user.uid, viewMode, (data, error) => {
       setNotes(data)
       setLoading(false)
-        setActionError(error ? 'Impossible de charger les notes.' : '')
+      setActionError(error ? 'Impossible de charger les notes.' : '')
     })
     return unsub
   }, [user, viewMode])
@@ -107,16 +104,23 @@ export default function HomePage() {
     })
   }
 
+  const handleFavoriteToggle = (note) => {
+    toggleFavorite(note.id, !note.isFavorite).catch(err => {
+      console.error('Favorite error:', err)
+      setActionError('Impossible de modifier le favori.')
+    })
+  }
+
   const handleDeleteForever = (note) => {
     setConfirmAction({
       title: 'Supprimer definitivement ?',
       message: 'Cette action est irreversible.',
       confirmLabel: 'Supprimer',
       danger: true,
-        onConfirm: () => permanentlyDeleteNote(note.id).catch(err => {
-          console.error('Delete error:', err)
-          setActionError('Impossible de supprimer cette note.')
-        })
+      onConfirm: () => permanentlyDeleteNote(note.id).catch(err => {
+        console.error('Delete error:', err)
+        setActionError('Impossible de supprimer cette note.')
+      })
     })
   }
 
@@ -145,7 +149,13 @@ export default function HomePage() {
   const pinned = viewMode === 'active' ? filtered.filter(n => n.isPinned).sort(sortFn) : []
   const others = (viewMode === 'active' ? filtered.filter(n => !n.isPinned) : filtered).sort(sortFn)
 
-  const pageTitle = viewMode === 'archived' ? 'Archives' : viewMode === 'trash' ? 'Corbeille' : 'M3Notes'
+  const pageTitle = viewMode === 'archived'
+    ? 'Archives'
+    : viewMode === 'trash'
+      ? 'Corbeille'
+      : viewMode === 'favorites'
+        ? 'Favoris'
+        : 'M3Notes'
 
   const startSelection = (note) => {
     setSelectedIds(new Set([note.id]))
@@ -167,10 +177,20 @@ export default function HomePage() {
   const bulkPin = () => {
     const allPinned = selectedNotes.every(n => n.isPinned)
     Promise.all(selectedNotes.map(n => togglePin(n.id, !allPinned)))
-        .catch(err => {
-          console.error('Bulk pin error:', err)
-          setActionError('Impossible de modifier les notes sélectionnées.')
-        })
+      .catch(err => {
+        console.error('Bulk pin error:', err)
+        setActionError('Impossible de modifier les notes sélectionnées.')
+      })
+      .finally(clearSelection)
+  }
+
+  const bulkFavorite = () => {
+    const allFavorite = selectedNotes.every(n => n.isFavorite)
+    Promise.all(selectedNotes.map(n => toggleFavorite(n.id, !allFavorite)))
+      .catch(err => {
+        console.error('Bulk favorite error:', err)
+        setActionError('Impossible de modifier les favoris sélectionnés.')
+      })
       .finally(clearSelection)
   }
 
@@ -182,10 +202,10 @@ export default function HomePage() {
       confirmLabel: 'Archiver',
       onConfirm: () => {
         Promise.all(selectedNotes.map(n => toggleArchive(n.id, true)))
-            .catch(err => {
-              console.error('Bulk archive error:', err)
-              setActionError('Impossible d’archiver les notes sélectionnées.')
-            })
+          .catch(err => {
+            console.error('Bulk archive error:', err)
+            setActionError('Impossible d’archiver les notes sélectionnées.')
+          })
           .finally(clearSelection)
       }
     })
@@ -209,10 +229,10 @@ export default function HomePage() {
       danger: true,
       onConfirm: () => {
         Promise.all(selectedNotes.map(n => moveToTrash(n.id)))
-            .catch(err => {
-              console.error('Bulk delete error:', err)
-              setActionError('Impossible de supprimer les notes sélectionnées.')
-            })
+          .catch(err => {
+            console.error('Bulk delete error:', err)
+            setActionError('Impossible de supprimer les notes sélectionnées.')
+          })
           .finally(clearSelection)
       }
     })
@@ -236,14 +256,30 @@ export default function HomePage() {
       danger: true,
       onConfirm: () => {
         Promise.all(selectedNotes.map(n => permanentlyDeleteNote(n.id)))
-            .catch(err => {
-              console.error('Bulk delete forever error:', err)
-              setActionError('Impossible de supprimer définitivement les notes sélectionnées.')
-            })
+          .catch(err => {
+            console.error('Bulk delete forever error:', err)
+            setActionError('Impossible de supprimer définitivement les notes sélectionnées.')
+          })
           .finally(clearSelection)
       }
     })
   }
+
+  const renderNoteCard = (note) => (
+    <NoteCard
+      key={note.id}
+      note={note}
+      onClick={() => openNote(note)}
+      onFavoriteToggle={handleFavoriteToggle}
+      onRestore={handleRestore}
+      onDeleteForever={handleDeleteForever}
+      trashMode={viewMode === 'trash'}
+      selectionMode={selectionMode}
+      selected={selectedIds.has(note.id)}
+      onToggleSelect={toggleSelect}
+      onLongPress={startSelection}
+    />
+  )
 
   return (
     <div className="home">
@@ -254,11 +290,16 @@ export default function HomePage() {
           </button>
           <span className="selection-count">{selectedIds.size} selectionnee(s)</span>
           <div className="topbar-actions">
-            {viewMode === 'active' && (
+            {(viewMode === 'active' || viewMode === 'favorites') && (
               <>
-                <button onClick={bulkPin} title="Epingler">
-                  <Pin size={20} />
+                <button onClick={bulkFavorite} title="Favoris">
+                  <Star size={20} fill={viewMode === 'favorites' ? 'currentColor' : 'none'} />
                 </button>
+                {viewMode === 'active' && (
+                  <button onClick={bulkPin} title="Epingler">
+                    <Pin size={20} />
+                  </button>
+                )}
                 <button onClick={bulkArchive} title="Archiver">
                   <Archive size={20} />
                 </button>
@@ -306,6 +347,13 @@ export default function HomePage() {
 
           <div className="topbar-actions">
             <button
+              className={viewMode === 'favorites' ? 'active' : ''}
+              onClick={() => setView('favorites')}
+              title="Favoris"
+            >
+              <Star size={20} fill={viewMode === 'favorites' ? 'currentColor' : 'none'} />
+            </button>
+            <button
               className={viewMode === 'archived' ? 'active' : ''}
               onClick={() => setView('archived')}
               title="Archives"
@@ -332,7 +380,7 @@ export default function HomePage() {
         </header>
       )}
 
-      {!selectionMode && viewMode === 'active' && (
+      {!selectionMode && (viewMode === 'active' || viewMode === 'favorites') && (
         <div className="filter-row">
           {allLabels.length > 0 && (
             <div className="label-filter-bar">
@@ -371,6 +419,7 @@ export default function HomePage() {
           <p className="empty">
             {viewMode === 'archived' ? 'Aucune note archivée' :
              viewMode === 'trash' ? 'La corbeille est vide' :
+             viewMode === 'favorites' ? 'Aucune note favorite' :
              'Aucune note\nClique sur + pour commencer'}
           </p>
         ) : (
@@ -379,13 +428,7 @@ export default function HomePage() {
               <section className="notes-section">
                 {others.length > 0 && <h2 className="section-title">Épinglées</h2>}
                 <div className="notes-grid">
-                  {pinned.map(note => (
-                    <NoteCard
-                      key={note.id}
-                      note={note}
-                      onClick={() => openNote(note)}
-                    />
-                  ))}
+                  {pinned.map(renderNoteCard)}
                 </div>
               </section>
             )}
@@ -394,19 +437,7 @@ export default function HomePage() {
               <section className="notes-section">
                 {pinned.length > 0 && <h2 className="section-title">Autres</h2>}
                 <div className="notes-grid">
-                  {others.map(note => (
-                    <NoteCard
-                      key={note.id}
-                      note={note}
-                      onClick={() => openNote(note)}
-                      onRestore={handleRestore}
-                      onDeleteForever={handleDeleteForever}
-                      selectionMode={selectionMode}
-                      selected={selectedIds.has(note.id)}
-                      onToggleSelect={toggleSelect}
-                      onLongPress={startSelection}
-                    />
-                  ))}
+                  {others.map(renderNoteCard)}
                 </div>
               </section>
             )}
