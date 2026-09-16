@@ -13,6 +13,11 @@ import './HomePage.css'
 
 const UNDO_DELAY = 5000
 
+// Persiste tant que le module reste chargé (traversée de route SPA), donc
+// survit au démontage/remontage de HomePage entre l'ouverture d'une note
+// et le retour à la liste.
+let lastScrollY = 0
+
 export default function HomePage() {
   const { user, logout } = useAuth()
   const { dark, toggle } = useTheme()
@@ -32,6 +37,12 @@ export default function HomePage() {
   const [selectedIds, setSelectedIds] = useState(new Set())
   const deleteTimerRef = useRef(null)
   const processedKeyRef = useRef(null)
+  const restoredScrollRef = useRef(false)
+
+  const openNote = (note) => {
+    lastScrollY = window.scrollY
+    navigate(`/note/${note.id}`, { state: { note } })
+  }
 
   const selectionMode = selectedIds.size > 0
 
@@ -45,6 +56,12 @@ export default function HomePage() {
     })
     return unsub
   }, [user, viewMode])
+
+  useEffect(() => {
+    if (restoredScrollRef.current || loading) return
+    restoredScrollRef.current = true
+    window.scrollTo(0, lastScrollY)
+  }, [loading])
 
   useEffect(() => {
     if (viewMode !== 'trash') return
@@ -366,12 +383,7 @@ export default function HomePage() {
                     <NoteCard
                       key={note.id}
                       note={note}
-                      onClick={() => navigate(`/note/${note.id}`, { state: { note } })}
-                      onLabelClick={toggleLabelFilter}
-                      selectionMode={selectionMode}
-                      selected={selectedIds.has(note.id)}
-                      onToggleSelect={toggleSelect}
-                      onLongPress={startSelection}
+                      onClick={() => openNote(note)}
                     />
                   ))}
                 </div>
@@ -386,9 +398,7 @@ export default function HomePage() {
                     <NoteCard
                       key={note.id}
                       note={note}
-                      onClick={() => navigate(`/note/${note.id}`, { state: { note } })}
-                      onLabelClick={toggleLabelFilter}
-                      trashMode={viewMode === 'trash'}
+                      onClick={() => openNote(note)}
                       onRestore={handleRestore}
                       onDeleteForever={handleDeleteForever}
                       selectionMode={selectionMode}
