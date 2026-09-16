@@ -1,6 +1,7 @@
 import { getFirestoreCtx } from '../firebase'
 
 const NOTES = 'notes'
+const HISTORY = 'history'
 const TRASH_RETENTION_DAYS = 7
 
 async function patchNote(noteId, fields, { touch = true } = {}) {
@@ -16,6 +17,32 @@ async function addNoteDoc(fields) {
     updatedAt: Timestamp.now()
   })
   return ref.id
+}
+
+function historySnapshot(note) {
+  return {
+    title: note.title || '',
+    content: note.content || '',
+    color: note.color || 'DEFAULT',
+    isPinned: !!note.isPinned,
+    isFavorite: !!note.isFavorite,
+    isArchived: !!note.isArchived,
+    isChecklist: !!note.isChecklist,
+    checklist: (note.checklist || []).map(item => ({ ...item })),
+    labels: [...(note.labels || [])]
+  }
+}
+
+function snapshotsEqual(a, b) {
+  return JSON.stringify(historySnapshot(a)) === JSON.stringify(historySnapshot(b))
+}
+
+async function saveHistoryVersion(noteId, note) {
+  const { db, addDoc, collection, serverTimestamp } = await getFirestoreCtx()
+  await addDoc(collection(db, NOTES, noteId, HISTORY), {
+    ...historySnapshot(note),
+    savedAt: serverTimestamp()
+  })
 }
 
 export function subscribeNotes(userId, mode, callback) {
@@ -75,10 +102,56 @@ export async function updateNote(noteId, data) {
   return patchNote(noteId, data)
 }
 
+export async function updateNoteWithHistory(noteId, data) {
+  const { db, doc, getDoc } = await getFirestoreCtx()
+  const ref = doc(db, NOTES, noteId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) throw new Error('Note introuvable')
+
+  const current = snap.data()
+  if (!snapshotsEqual(current, data)) {
+    await saveHistoryVersion(noteId, current)
+    await patchNote(noteId, data)
+  }
+}
+
+export function subscribeNoteHistory(noteId, callback) {
+  let unsub = null
+  let cancelled = false
+
+  getFirestoreCtx().then(({ db, collection, query, orderBy, onSnapshot }) => {
+    if (cancelled) return
+    const q = query(collection(db, NOTES, noteId, HISTORY), orderBy('savedAt', 'desc'))
+    unsub = onSnapshot(q, (snap) => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    }, (err) => {
+      console.error('History subscription error:', err)
+      callback([], err)
+    })
+  })
+
+  return () => {
+    cancelled = true
+    if (unsub) unsub()
+  }
+}
+
+export async function restoreHistoryVersion(noteId, versionId) {
+  const { db, doc, getDoc } = await getFirestoreCtx()
+  const noteRef = doc(db, NOTES, noteId)
+  const versionRef = doc(db, NOTES, noteId, HISTORY, versionId)
+  const [noteSnap, versionSnap] = await Promise.all([getDoc(noteRef), getDoc(versionRef)])
+
+  if (!noteSnap.exists() || !versionSnap.exists()) throw new Error('Version introuvable')
+
+  const current = noteSnap.data()
+  const version = versionSnap.data()
+  await saveHistoryVersion(noteId, current)
+  await patchNote(noteId, historySnapshot(version))
+}
+
 export async function moveToTrash(noteId) {
   const { Timestamp } = await getFirestoreCtx()
-  // Pas de updatedAt ici : la mise en corbeille ne doit pas faire remonter
-  // la note dans les tris par date de modification.
   return patchNote(noteId, { isDeleted: true, deletedAt: Timestamp.now() }, { touch: false })
 }
 
