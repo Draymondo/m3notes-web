@@ -17,6 +17,34 @@
   font-size: 1.2rem;
 }
 
+/* Actions de la barre supérieure : éviter le style natif du navigateur. */
+.vault-toolbar .icon-btn {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.vault-toolbar .icon-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.vault-toolbar .icon-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .vault-lock-screen {
   display: flex;
   flex-direction: column;
