@@ -1,13 +1,15 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useAuth } from './AuthContext'
 import { getVaultMeta, setupVault, unlockVault as unlockVaultKey } from '../services/vault'
 
 const VaultContext = createContext()
+const VAULT_AUTO_LOCK_MS = 5 * 60 * 1000
 
 export function VaultProvider({ children }) {
   const { user } = useAuth()
   const [vaultKey, setVaultKey] = useState(null)
   const [hasVault, setHasVault] = useState(null)
+  const autoLockTimer = useRef(null)
 
   useEffect(() => {
     setVaultKey(null)
@@ -36,6 +38,34 @@ export function VaultProvider({ children }) {
   }
 
   const lock = () => setVaultKey(null)
+
+  useEffect(() => {
+    if (!vaultKey) {
+      if (autoLockTimer.current) {
+        clearTimeout(autoLockTimer.current)
+        autoLockTimer.current = null
+      }
+      return undefined
+    }
+
+    const resetAutoLock = () => {
+      if (autoLockTimer.current) clearTimeout(autoLockTimer.current)
+      autoLockTimer.current = setTimeout(() => {
+        setVaultKey(null)
+        autoLockTimer.current = null
+      }, VAULT_AUTO_LOCK_MS)
+    }
+
+    const activityEvents = ['pointerdown', 'keydown', 'touchstart']
+    activityEvents.forEach(event => window.addEventListener(event, resetAutoLock, { passive: true }))
+    resetAutoLock()
+
+    return () => {
+      if (autoLockTimer.current) clearTimeout(autoLockTimer.current)
+      autoLockTimer.current = null
+      activityEvents.forEach(event => window.removeEventListener(event, resetAutoLock))
+    }
+  }, [vaultKey])
 
   return (
     <VaultContext.Provider value={{ vaultKey, hasVault, checkVaultExists, setup, unlock, lock }}>
