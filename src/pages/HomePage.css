@@ -88,33 +88,6 @@
   .notes-grid { column-count: 4; }
 }
 
-.empty {
-  text-align: center;
-  color: var(--text-secondary);
-  margin-top: 80px;
-  white-space: pre-line;
-  line-height: 1.6;
-}
-
-.fab {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  width: var(--fab-size);
-  height: var(--fab-size);
-  border-radius: 16px;
-  border: none;
-  background: var(--primary);
-  color: white;
-  font-size: 1.8rem;
-  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.15s, box-shadow 0.15s;
-  z-index: 20;
-}
-
 .fab:hover {
   transform: scale(1.06);
   box-shadow: 0 6px 16px rgba(26, 115, 232, 0.5);

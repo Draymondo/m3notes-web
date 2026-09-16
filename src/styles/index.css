@@ -44,6 +44,92 @@ input, textarea {
   font-family: inherit;
 }
 
+/* Bouton icône rond partagé entre plusieurs pages (Accueil, Note, Coffre).
+   Défini ici (CSS global, chargé dès le démarrage) plutôt que dans le CSS
+   d'une page précise : les CSS de page sont chargés à la demande (lazy),
+   donc un style défini là-bas peut manquer si on n'est jamais passé par
+   cette page-là. */
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.icon-btn:hover {
+  opacity: 1;
+  background: rgba(0,0,0,0.06);
+}
+
+[data-theme="dark"] .icon-btn:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.icon-btn.active {
+  opacity: 1;
+}
+
+/* Bouton flottant "nouvelle note", partagé entre Accueil et Coffre. */
+.fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: var(--fab-size);
+  height: var(--fab-size);
+  border-radius: 16px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-size: 1.8rem;
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  z-index: 20;
+}
+
+.fab:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 16px rgba(26, 115, 232, 0.5);
+}
+
+/* Message d'état vide, partagé entre Accueil et Coffre. */
+.empty {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 80px;
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+/* Message d'erreur, partagé entre Note, Coffre et Note du coffre. */
+.vault-error {
+  color: #d93025;
+  font-size: 0.85rem;
+}
+
+[data-theme="dark"] .vault-error {
+  color: #f28b82;
+}
+
+/* Écran de chargement plein écran, partagé entre plusieurs pages. */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--text-secondary);
+}
+
 #root {
   min-height: 100vh;
 }
