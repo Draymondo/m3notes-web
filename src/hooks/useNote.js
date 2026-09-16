@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
 import { useAuth } from '../context/AuthContext'
 import { getFirestoreCtx } from '../firebase'
@@ -10,6 +10,8 @@ export function useNote() {
   const isNew = id === 'new'
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const passedNote = location.state?.note?.id === id ? location.state.note : null
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -25,8 +27,29 @@ export function useNote() {
   const [shareError, setShareError] = useState('')
   const [confirmAction, setConfirmAction] = useState(null)
 
+  const applyNoteData = (data) => {
+    setTitle(data.title || '')
+    setContent(data.content || '')
+    setColor(data.color || 'DEFAULT')
+    setIsPinned(data.isPinned || false)
+    setIsArchived(data.isArchived || false)
+    setIsChecklist(data.isChecklist || false)
+    setChecklist(data.checklist || [])
+    setLabels(data.labels || [])
+  }
+
   useEffect(() => {
     if (isNew || !user) return
+
+    if (passedNote) {
+      // La note est déjà connue (liste synchronisée en temps réel côté
+      // Home) : on l'affiche immédiatement, sans aller-retour réseau.
+      applyNoteData(passedNote)
+      setLoading(false)
+      setLoadError('')
+      return
+    }
+
     let cancelled = false
     setLoading(true)
     setLoadError('')
@@ -41,21 +64,14 @@ export function useNote() {
         setLoadError('Cette note n’est pas accessible ici.')
         return
       }
-      setTitle(data.title || '')
-      setContent(data.content || '')
-      setColor(data.color || 'DEFAULT')
-      setIsPinned(data.isPinned || false)
-      setIsArchived(data.isArchived || false)
-      setIsChecklist(data.isChecklist || false)
-      setChecklist(data.checklist || [])
-      setLabels(data.labels || [])
+      applyNoteData(data)
     }).catch(() => {
       if (!cancelled) setLoadError('Impossible de charger cette note.')
     }).finally(() => {
       if (!cancelled) setLoading(false)
     })
     return () => { cancelled = true }
-  }, [id, isNew, user])
+  }, [id, isNew, user, passedNote])
 
   const addItem = (text) => {
     const trimmed = text.trim()

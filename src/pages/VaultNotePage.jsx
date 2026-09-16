@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, LockKeyhole } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useVault } from '../context/VaultContext'
@@ -13,6 +13,8 @@ export default function VaultNotePage() {
   const { user } = useAuth()
   const { vaultKey } = useVault()
   const navigate = useNavigate()
+  const location = useLocation()
+  const passedNote = location.state?.note?.id === id ? location.state.note : null
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -26,31 +28,42 @@ export default function VaultNotePage() {
       return
     }
     if (isNew) return
-      let cancelled = false
+
+    if (passedNote) {
+      // La note (déjà déchiffrée côté liste) est connue : affichage
+      // immédiat, sans aller-retour réseau ni re-déchiffrement.
+      setTitle(passedNote.title || '')
+      setContent(passedNote.content || '')
       setLoadError('')
-      getFirestoreCtx().then(({ db, doc, getDoc }) => getDoc(doc(db, 'notes', id))).then(async (snap) => {
-        if (cancelled) return
-        if (!snap.exists() || snap.data().userId !== user?.uid || !snap.data().isVault) {
-          setLoadError('Cette note du coffre est introuvable.')
-          return
+      setLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setLoadError('')
+    getFirestoreCtx().then(({ db, doc, getDoc }) => getDoc(doc(db, 'notes', id))).then(async (snap) => {
+      if (cancelled) return
+      if (!snap.exists() || snap.data().userId !== user?.uid || !snap.data().isVault) {
+        setLoadError('Cette note du coffre est introuvable.')
+        return
+      }
+      try {
+        const decoded = await decryptVaultNote(vaultKey, snap.data())
+        if (!cancelled) {
+          setTitle(decoded.title)
+          setContent(decoded.content)
         }
-        try {
-          const decoded = await decryptVaultNote(vaultKey, snap.data())
-          if (!cancelled) {
-            setTitle(decoded.title)
-            setContent(decoded.content)
-          }
-        } catch {
-          if (!cancelled) setLoadError('Impossible de déchiffrer cette note.')
-        }
-      }).catch(() => {
-        if (!cancelled) setLoadError('Impossible de charger cette note.')
-      }).finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-      return () => { cancelled = true }
+      } catch {
+        if (!cancelled) setLoadError('Impossible de déchiffrer cette note.')
+      }
+    }).catch(() => {
+      if (!cancelled) setLoadError('Impossible de charger cette note.')
+    }).finally(() => {
+      if (!cancelled) setLoading(false)
+    })
+    return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isNew, vaultKey])
+  }, [id, isNew, vaultKey, passedNote])
 
   const save = async () => {
     if (!user || !vaultKey) return
