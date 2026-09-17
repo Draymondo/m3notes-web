@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Lock, LockKeyhole, Plus, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useVault } from '../context/VaultContext'
-import { subscribeVaultNotes, decryptVaultNote, deleteVaultNote } from '../services/vault'
+import { subscribeVaultNotes, decryptVaultNote, deleteVaultNote, createVaultNote } from '../services/vault'
+import { permanentlyDeleteNote } from '../services/notes'
 import ConfirmDialog from '../components/ConfirmDialog'
 import './VaultPage.css'
 
@@ -11,17 +12,21 @@ export default function VaultPage() {
   const { user } = useAuth()
   const { vaultKey, hasVault, checkVaultExists, setup, unlock, lock } = useVault()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [checking, setChecking] = useState(true)
   const [code, setCode] = useState('')
   const [confirmCode, setConfirmCode] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [transferBusy, setTransferBusy] = useState(false)
 
   const [rawNotes, setRawNotes] = useState([])
   const [decrypted, setDecrypted] = useState([])
   const [confirmDeleteNote, setConfirmDeleteNote] = useState(null)
   const [subscriptionError, setSubscriptionError] = useState('')
+
+  const transferNote = location.state?.transferNote
 
   useEffect(() => {
     checkVaultExists()
@@ -56,6 +61,29 @@ export default function VaultPage() {
     })
     return () => { cancelled = true }
   }, [rawNotes, vaultKey])
+
+  useEffect(() => {
+    if (!vaultKey || !transferNote || transferBusy) return
+    let cancelled = false
+    setTransferBusy(true)
+    setError('')
+    ;(async () => {
+      try {
+        await createVaultNote(user.uid, vaultKey, {
+          title: transferNote.title || '',
+          content: transferNote.content || ''
+        })
+        await permanentlyDeleteNote(transferNote.id)
+        if (!cancelled) navigate('/vault', { replace: true, state: {} })
+      } catch (err) {
+        console.error('Vault transfer error:', err)
+        if (!cancelled) setError('Impossible de transférer la note dans le coffre.')
+      } finally {
+        if (!cancelled) setTransferBusy(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [vaultKey, transferNote, transferBusy, user, navigate])
 
   const handleSetup = async () => {
     setError('')
@@ -166,7 +194,8 @@ export default function VaultPage() {
       </header>
 
       <main className="vault-notes-area">
-          {subscriptionError && <p className="vault-error" role="alert">{subscriptionError}</p>}
+        {subscriptionError && <p className="vault-error" role="alert">{subscriptionError}</p>}
+        {transferBusy && <p className="vault-transfer-status">Transfert de la note dans le coffre…</p>}
         {decrypted.length === 0 ? (
           <p className="empty">Coffre vide</p>
         ) : (
