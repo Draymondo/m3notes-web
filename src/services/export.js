@@ -114,14 +114,19 @@ export function exportPdf(notes, filename = 'm3notes') {
     body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;color:#222;line-height:1.6}
     h1{margin-bottom:4px} .date{color:#666;margin-bottom:30px} article{page-break-inside:avoid;border-bottom:1px solid #ddd;padding:0 0 24px;margin-bottom:24px}
     article:last-child{border-bottom:0}.meta{color:#666;font-size:13px}.content{white-space:normal}
+    @media print{body{margin:0;max-width:none}article{break-inside:avoid}}
   </style></head><body><h1>M3Notes</h1><p class="date">Export du ${escapeHtml(new Date().toLocaleString('fr-FR'))}</p>${noteHtml}</body></html>`
 
-  const printWindow = window.open('', '_blank', 'noopener,noreferrer')
-  if (!printWindow) throw new Error('Impossible d’ouvrir la fenêtre d’impression.')
+  // Must be opened synchronously from the user's click so mobile browsers do not block it.
+  // Do not use the noopener/noreferrer feature string here: some browsers return null for
+  // the WindowProxy in that case, which prevents us from writing the printable document.
+  const printWindow = window.open('', '_blank')
+  if (!printWindow) throw new Error('La fenêtre PDF a été bloquée par le navigateur. Autorisez les fenêtres contextuelles pour M3Notes.')
+  printWindow.document.open()
   printWindow.document.write(html)
   printWindow.document.close()
   printWindow.focus()
-  setTimeout(() => printWindow.print(), 250)
+  setTimeout(() => printWindow.print(), 350)
 }
 
 export function parseBackupFile(file) {
