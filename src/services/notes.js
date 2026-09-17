@@ -109,9 +109,22 @@ export async function updateNoteWithHistory(noteId, data) {
   if (!snap.exists()) throw new Error('Note introuvable')
 
   const current = snap.data()
-  if (!snapshotsEqual(current, data)) {
+  if (snapshotsEqual(current, data)) return
+
+  // La note principale reste prioritaire : une panne de l'historique ne doit
+  // pas empêcher l'utilisateur d'enregistrer sa modification.
+  let historyError = null
+  try {
     await saveHistoryVersion(noteId, current)
-    await patchNote(noteId, data)
+  } catch (err) {
+    historyError = err
+    console.error('History save error:', err)
+  }
+
+  await patchNote(noteId, data)
+
+  if (historyError) {
+    console.warn('Note saved without history version:', noteId)
   }
 }
 
