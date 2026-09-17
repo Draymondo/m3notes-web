@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Lock, LockKeyhole, Plus, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useVault } from '../context/VaultContext'
