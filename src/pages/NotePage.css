@@ -24,6 +24,7 @@
 .note-preview pre code { padding: 0; background: none; } .note-preview a { color: inherit; text-decoration: underline; }
 .note-preview .md-checked { text-decoration: line-through; opacity: .55; } .note-preview .md-checkbox { margin-right: 6px; } .note-preview .md-spacer { height: 8px; }
 .note-page .markdown-renderer { padding-left: 0; padding-right: 0; }
+.note-page .markdown-renderer.note-preview { padding: 8px 20px 40px; }
 .note-page > .checklist-editor,
 .note-page > .labels-editor { margin-left: 20px; margin-right: 20px; }
 .note-default { background: #ffffff; color: #202124; } .note-red { background: #f28b82; color: #202124; } .note-orange { background: #fbbc04; color: #202124; } .note-yellow { background: #fff475; color: #202124; } .note-green { background: #ccff90; color: #202124; } .note-teal { background: #a7ffeb; color: #202124; } .note-blue { background: #cbf0f8; color: #202124; } .note-darkblue { background: #aecbfa; color: #202124; } .note-purple { background: #d7aefb; color: #202124; } .note-pink { background: #fdcfe8; color: #202124; } .note-brown { background: #e6c9a8; color: #202124; } .note-gray { background: #e8eaed; color: #202124; }
