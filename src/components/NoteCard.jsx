@@ -22,7 +22,11 @@ export default function NoteCard({ note, onClick, onLabelClick, onFavoriteToggle
   const startPress = (e) => {
     const point = e.touches ? e.touches[0] : e
     startPos.current = { x: point.clientX, y: point.clientY }
-    pressTimer.current = setTimeout(() => { justLongPressed.current = true; onLongPress?.(note) }, LONG_PRESS_MS)
+    pressTimer.current = setTimeout(() => {
+      justLongPressed.current = true
+      onLongPress?.(note)
+      window.dispatchEvent(new CustomEvent('m3notes:longpress', { detail: { note } }))
+    }, LONG_PRESS_MS)
   }
   const cancelPress = () => { if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null } }
   const handleTouchMove = (e) => {
