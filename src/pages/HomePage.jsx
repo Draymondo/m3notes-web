@@ -442,7 +442,8 @@ export default function HomePage() {
             {viewMode === 'archived' ? 'Aucune note archivée' :
              viewMode === 'trash' ? 'La corbeille est vide' :
              viewMode === 'favorites' ? 'Aucune note favorite' :
-             'Aucune note\nClique sur + pour commencer'}
+             'Aucune note\
+Clique sur + pour commencer'}
           </p>
         ) : (
           <>
@@ -473,9 +474,11 @@ export default function HomePage() {
         </div>
       )}
 
-      <button className="fab" onClick={() => navigate('/note/new')} title="Nouvelle note">
-        <Plus size={28} />
-      </button>
+      {!selectionMode && viewMode === 'active' && (
+        <button className="fab" onClick={() => navigate('/note/new')} title="Nouvelle note">
+          <Plus size={28} />
+        </button>
+      )}
 
       <ConfirmDialog
         open={!!confirmAction}
