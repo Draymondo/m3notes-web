@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Archive, StickyNote, Star, Sun, Moon, LogOut, Plus, Trash2, Lock, X, Pin, RotateCcw } from 'lucide-react'
+import { Archive, StickyNote, Star, Sun, Moon, LogOut, Plus, Trash2, Lock, X, Pin, RotateCcw, Download } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import {
@@ -369,6 +369,9 @@ export default function HomePage() {
             </button>
             <button onClick={() => navigate('/vault')} title="Coffre">
               <Lock size={20} />
+            </button>
+            <button onClick={() => navigate('/export')} title="Exporter et sauvegarder">
+              <Download size={20} />
             </button>
             <button onClick={toggle} title="Thème">
               {dark ? <Sun size={20} /> : <Moon size={20} />}
