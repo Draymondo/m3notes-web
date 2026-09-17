@@ -1,168 +1,40 @@
-.note-card {
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-  break-inside: avoid;
-  margin-bottom: 12px;
-  position: relative;
-  color: #202124;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  max-width: 100%;
-}
+.note-card { border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; break-inside: avoid; margin-bottom: 12px; position: relative; color: #202124; overflow-wrap: break-word; word-break: break-word; max-width: 100%; }
+.note-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+.note-card-actions { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 2px; }
+.note-card .pin { position: static; font-size: 0.85rem; }
+.favorite-btn { width: 30px; height: 30px; padding: 5px; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 50%; background: transparent; color: currentColor; opacity: 0.55; cursor: pointer; }
+.favorite-btn:hover, .favorite-btn.active { opacity: 1; }
+.note-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; line-height: 1.3; padding-right: 42px; }
+.note-content { font-size: 0.9rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden; opacity: 0.85; }
+.note-content, .checklist-count { padding-right: 42px; }
+.checklist { list-style: none; font-size: 0.9rem; }
+.checklist li { margin-bottom: 2px; opacity: 0.85; }
+.checklist li.checked { text-decoration: line-through; opacity: 0.55; }
+.checklist .more { opacity: 0.5; font-size: 0.8rem; }
+.labels { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.label { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,0.08); opacity: 0.8; }
+.checklist-count { font-size: 0.75rem; color: var(--text-secondary, #5f6368); opacity: 0.8; display: block; margin-bottom: 4px; }
+.label:hover { opacity: 0.7; }
+.trash-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+.trash-actions button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; background: none; border: none; padding: 6px 4px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; opacity: 0.75; }
+.trash-actions button:hover { opacity: 1; background: rgba(0,0,0,0.06); }
+[data-theme="dark"] .trash-actions button:hover { background: rgba(255,255,255,0.1); }
+.trash-actions button.danger { color: #d93025; }
+[data-theme="dark"] .trash-actions button.danger { color: #f28b82; }
 
-.note-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-}
-
-.note-card-actions {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.note-card .pin {
-  position: static;
-  font-size: 0.85rem;
-}
-
-.favorite-btn {
-  width: 30px;
-  height: 30px;
-  padding: 5px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: currentColor;
-  opacity: 0.55;
-  cursor: pointer;
-}
-
-.favorite-btn:hover,
-.favorite-btn.active {
-  opacity: 1;
-}
-
-.note-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-  line-height: 1.3;
-  padding-right: 42px;
-}
-
-.note-content {
-  font-size: 0.9rem;
-  line-height: 1.45;
-  white-space: pre-wrap;
-  display: -webkit-box;
-  -webkit-line-clamp: 10;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  opacity: 0.85;
-}
-
-/* Sans titre, le contenu (ou le compteur de checklist) devient la
-   première ligne de la carte — il lui faut donc la même marge que
-   .note-title pour ne pas passer sous les icônes épingle/favori
-   (positionnées en absolu en haut à droite via .note-card-actions). */
-.note-content,
-.checklist-count {
-  padding-right: 42px;
-}
-
-.checklist {
-  list-style: none;
-  font-size: 0.9rem;
-}
-
-.checklist li {
-  margin-bottom: 2px;
-  opacity: 0.85;
-}
-
-.checklist li.checked {
-  text-decoration: line-through;
-  opacity: 0.55;
-}
-
-.checklist .more {
-  opacity: 0.5;
-  font-size: 0.8rem;
-}
-
-.labels {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 10px;
-}
-
-.label {
-  font-size: 0.7rem;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(0,0,0,0.08);
-  opacity: 0.8;
-}
-
-.checklist-count {
-  font-size: 0.75rem;
-  color: var(--text-secondary, #5f6368);
-  opacity: 0.8;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.label:hover {
-  opacity: 0.7;
-}
-
-.trash-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
-}
-
-.trash-actions button {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  padding: 6px 4px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  opacity: 0.75;
-}
-
-.trash-actions button:hover {
-  opacity: 1;
-  background: rgba(0,0,0,0.06);
-}
-
-[data-theme="dark"] .trash-actions button:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.trash-actions button.danger {
-  color: #d93025;
-}
-
-[data-theme="dark"] .trash-actions button.danger {
-  color: #f28b82;
-}
+.markdown-renderer { line-height: 1.5; overflow-wrap: anywhere; }
+.markdown-renderer p { margin: 0 0 8px; }
+.markdown-renderer p:last-child { margin-bottom: 0; }
+.markdown-renderer h1, .markdown-renderer h2, .markdown-renderer h3, .markdown-renderer h4, .markdown-renderer h5, .markdown-renderer h6 { margin: 8px 0 6px; line-height: 1.25; }
+.markdown-renderer h1 { font-size: 1.35em; } .markdown-renderer h2 { font-size: 1.2em; } .markdown-renderer h3 { font-size: 1.08em; }
+.markdown-renderer ul, .markdown-renderer ol { margin: 4px 0 8px; padding-left: 22px; }
+.markdown-renderer li { margin: 2px 0; }
+.markdown-renderer blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid currentColor; opacity: 0.8; }
+.markdown-renderer hr { border: 0; border-top: 1px solid currentColor; opacity: 0.25; margin: 12px 0; }
+.markdown-renderer code { padding: 1px 4px; border-radius: 4px; background: rgba(0,0,0,0.1); font-family: monospace; }
+.markdown-renderer pre { margin: 8px 0; padding: 10px; border-radius: 8px; overflow-x: auto; background: rgba(0,0,0,0.1); }
+.markdown-renderer pre code { padding: 0; background: none; }
+.markdown-renderer a { color: inherit; text-decoration: underline; }
+.markdown-renderer .md-checked { text-decoration: line-through; opacity: 0.55; }
+.markdown-renderer .md-checkbox { margin-right: 5px; }
+.markdown-renderer .md-spacer { height: 6px; }
