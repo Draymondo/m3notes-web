@@ -8,6 +8,7 @@
   --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
   --radius: 12px;
   --fab-size: 56px;
+  --reading-font: Georgia, 'Times New Roman', serif;
 }
 
 [data-theme="dark"] {
@@ -54,6 +55,71 @@ input, textarea {
 
 #root {
   min-height: 100vh;
+}
+
+/* Editorial / newspaper typography for note content */
+.note-card,
+.note-card .note-title,
+.note-card .note-content,
+.note-editor,
+.note-editor textarea,
+.note-view,
+.note-view .markdown-body,
+.markdown-body {
+  font-family: var(--reading-font);
+}
+
+.note-card .note-title,
+.note-view h1,
+.note-view h2,
+.note-view h3,
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.note-card .note-content,
+.note-view .markdown-body,
+.markdown-body {
+  line-height: 1.55;
+}
+
+.note-view .markdown-body p,
+.markdown-body p {
+  margin: 0 0 0.85em;
+}
+
+.note-view .markdown-body ul,
+.note-view .markdown-body ol,
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 1.4em;
+  margin: 0 0 0.85em;
+}
+
+.note-view .markdown-body blockquote,
+.markdown-body blockquote {
+  margin: 1em 0;
+  padding-left: 1em;
+  border-left: 3px solid currentColor;
+  opacity: 0.8;
+}
+
+.note-view .markdown-body code,
+.markdown-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+}
+
+.note-view .markdown-body pre,
+.markdown-body pre {
+  overflow-x: auto;
+  padding: 0.9em;
+  margin: 1em 0;
+  border-radius: 8px;
+  background: rgba(127,127,127,0.12);
 }
 
 /* Note colors */
