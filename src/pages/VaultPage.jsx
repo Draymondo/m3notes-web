@@ -175,7 +175,7 @@ export default function VaultPage() {
               <div
                 key={note.id}
                 className="vault-note-item"
-                onClick={() => navigate(`/vault/${note.id}`, { state: { note } })}
+                onClick={() => navigate(`/vault/note/${note.id}`, { state: { note } })}
               >
                 <div className="vault-note-text">
                   <h3>{note.title || '(sans titre)'}</h3>
@@ -194,7 +194,7 @@ export default function VaultPage() {
         )}
       </main>
 
-      <button className="fab" onClick={() => navigate('/vault/new')} title="Nouvelle note coffre">
+      <button className="fab" onClick={() => navigate('/vault/note/new')} title="Nouvelle note coffre">
         <Plus size={26} />
       </button>
 

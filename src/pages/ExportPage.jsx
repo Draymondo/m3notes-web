@@ -38,7 +38,8 @@ export default function ExportPage() {
       for (const note of imported) {
         await createNote(user.uid, {
           title: note.title || '', content: note.content || '', labels: Array.isArray(note.labels) ? note.labels : [],
-          color: note.color || null, isPinned: !!note.isPinned, isFavorite: !!note.isFavorite, isArchived: !!note.isArchived
+          color: note.color || null, isPinned: !!note.isPinned, isFavorite: !!note.isFavorite, isArchived: !!note.isArchived,
+          isChecklist: !!note.isChecklist, checklist: Array.isArray(note.checklist) ? note.checklist : []
         })
       }
       setMessage(`${imported.length} note${imported.length > 1 ? 's' : ''} importée${imported.length > 1 ? 's' : ''}.`)

@@ -19,6 +19,8 @@ function serializeNote(note) {
     isFavorite: !!note.isFavorite,
     isArchived: !!note.isArchived,
     isDeleted: !!note.isDeleted,
+    isChecklist: !!note.isChecklist,
+    checklist: Array.isArray(note.checklist) ? note.checklist.map(item => ({ ...item })) : [],
     createdAt: toMillis(note.createdAt),
     updatedAt: toMillis(note.updatedAt),
     deletedAt: toMillis(note.deletedAt)
@@ -55,12 +57,26 @@ export function exportJson(notes, filename = 'm3notes-sauvegarde') {
   downloadBlob(blob, `${safeFilename(filename)}.json`)
 }
 
+function noteBodyMarkdown(note) {
+  if (note.isChecklist && Array.isArray(note.checklist)) {
+    return note.checklist.map(item => `- [${item.isChecked ? 'x' : ' '}] ${item.text || ''}`).join('\n')
+  }
+  return note.content || ''
+}
+
+function noteBodyText(note) {
+  if (note.isChecklist && Array.isArray(note.checklist)) {
+    return note.checklist.map(item => `${item.isChecked ? '[x]' : '[ ]'} ${item.text || ''}`).join('\n')
+  }
+  return note.content || ''
+}
+
 export function exportMarkdown(notes, filename = 'm3notes') {
   const sections = notes.map(note => {
     const labels = Array.isArray(note.labels) && note.labels.length
       ? `\n**Labels :** ${note.labels.map(label => `\`${label}\``).join(' ')}`
       : ''
-    return `# ${note.title || 'Sans titre'}\n\n${note.content || ''}${labels}\n`
+    return `# ${note.title || 'Sans titre'}\n\n${noteBodyMarkdown(note)}${labels}\n`
   })
   const content = `# M3Notes\n\nExport du ${new Date().toLocaleString('fr-FR')}\n\n${sections.join('\n---\n\n')}`
   downloadBlob(new Blob([content], { type: 'text/markdown;charset=utf-8' }), `${safeFilename(filename)}.md`)
@@ -69,7 +85,7 @@ export function exportMarkdown(notes, filename = 'm3notes') {
 export function exportText(notes, filename = 'm3notes') {
   const content = notes.map(note => {
     const labels = Array.isArray(note.labels) && note.labels.length ? `Labels : ${note.labels.join(', ')}\n` : ''
-    return `${note.title || 'Sans titre'}\n${'='.repeat(Math.max(8, (note.title || 'Sans titre').length))}\n${labels}\n${note.content || ''}`
+    return `${note.title || 'Sans titre'}\n${'='.repeat(Math.max(8, (note.title || 'Sans titre').length))}\n${labels}\n${noteBodyText(note)}`
   }).join('\n\n----------------------------------------\n\n')
   downloadBlob(new Blob([content], { type: 'text/plain;charset=utf-8' }), `${safeFilename(filename)}.txt`)
 }
@@ -88,7 +104,9 @@ export function exportPdf(notes, filename = 'm3notes') {
     const labels = Array.isArray(note.labels) && note.labels.length
       ? `<p class="meta"><strong>Labels :</strong> ${note.labels.map(escapeHtml).join(', ')}</p>`
       : ''
-    const content = escapeHtml(note.content || '').replace(/\n/g, '<br>')
+    const content = note.isChecklist && Array.isArray(note.checklist)
+      ? `<ul class="checklist">${note.checklist.map(item => `<li style="text-decoration:${item.isChecked ? 'line-through' : 'none'}">${item.isChecked ? '☑' : '☐'} ${escapeHtml(item.text || '')}</li>`).join('')}</ul>`
+      : escapeHtml(note.content || '').replace(/\n/g, '<br>')
     return `<article><h2>${escapeHtml(note.title || 'Sans titre')}</h2>${labels}<div class="content">${content}</div></article>`
   }).join('')
 
