@@ -16,7 +16,7 @@ function formatHistoryDate(timestamp) {
 export default function NotePage() {
   const note = useNote()
   const [labelInputOpen, setLabelInputOpen] = useState(false)
-  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(!note.isNew)
 
   if (note.loading) return <div className="note-page loading">Chargement…</div>
   if (note.loadError) return <div className="note-page loading"><p>{note.loadError}</p><button className="icon-btn" onClick={() => window.history.back()}>Retour</button></div>
