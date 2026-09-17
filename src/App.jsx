@@ -8,9 +8,8 @@ import LoginPage from './pages/LoginPage'
 import VaultPage from './pages/VaultPage'
 import VaultNotePage from './pages/VaultNotePage'
 import ExportPage from './pages/ExportPage'
+import VaultTransferAction from './components/VaultTransferAction'
 
-// Tant que l'état d'authentification n'est pas connu, on n'affiche ni la
-// page protégée ni une redirection prématurée vers /login.
 function RequireAuth({ children }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="app-loading">Chargement…</div>
@@ -18,8 +17,6 @@ function RequireAuth({ children }) {
   return children
 }
 
-// Un utilisateur déjà connecté qui atterrit sur /login est renvoyé à
-// l'accueil plutôt que de revoir le formulaire de connexion.
 function RedirectIfAuth({ children }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="app-loading">Chargement…</div>
@@ -40,6 +37,7 @@ export default function App() {
             <Route path="/vault/note/:id" element={<RequireAuth><VaultNotePage /></RequireAuth>} />
             <Route path="/export" element={<RequireAuth><ExportPage /></RequireAuth>} />
           </Routes>
+          <VaultTransferAction />
         </VaultProvider>
       </ThemeProvider>
     </AuthProvider>
