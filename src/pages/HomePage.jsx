@@ -174,6 +174,19 @@ export default function HomePage() {
 
   const selectedNotes = filtered.filter(n => selectedIds.has(n.id))
 
+  const bulkVault = () => {
+    if (selectedNotes.length === 0) return
+    navigate('/vault', {
+      state: {
+        transferNotes: selectedNotes.map(note => ({
+          id: note.id,
+          title: note.title || '',
+          content: note.content || ''
+        }))
+      }
+    })
+  }
+
   const bulkPin = () => {
     const allPinned = selectedNotes.every(n => n.isPinned)
     Promise.all(selectedNotes.map(n => togglePin(n.id, !allPinned)))
@@ -292,6 +305,9 @@ export default function HomePage() {
           <div className="topbar-actions">
             {(viewMode === 'active' || viewMode === 'favorites') && (
               <>
+                <button onClick={bulkVault} title="Transférer au coffre">
+                  <Lock size={20} />
+                </button>
                 <button onClick={bulkFavorite} title="Favoris">
                   <Star size={20} fill={viewMode === 'favorites' ? 'currentColor' : 'none'} />
                 </button>
@@ -310,6 +326,9 @@ export default function HomePage() {
             )}
             {viewMode === 'archived' && (
               <>
+                <button onClick={bulkVault} title="Transférer au coffre">
+                  <Lock size={20} />
+                </button>
                 <button onClick={bulkUnarchive} title="Desarchiver">
                   <StickyNote size={20} />
                 </button>
@@ -435,10 +454,9 @@ export default function HomePage() {
                 </div>
               </section>
             )}
-
             {others.length > 0 && (
               <section className="notes-section">
-                {pinned.length > 0 && <h2 className="section-title">Autres</h2>}
+                {pinned.length > 0 && <h2 className="section-title">Notes</h2>}
                 <div className="notes-grid">
                   {others.map(renderNoteCard)}
                 </div>
@@ -449,28 +467,15 @@ export default function HomePage() {
       </main>
 
       {pendingDeleteId && (
-        <div className="snackbar">
-          <span>Note supprimée</span>
+        <div className="undo-bar">
+          <span>Note déplacée vers la corbeille</span>
           <button onClick={undoDelete}>Annuler</button>
         </div>
       )}
 
-      {!selectionMode && viewMode === 'active' && (
-        <button className="fab" onClick={() => navigate('/note/new')} title="Nouvelle note">
-          <Plus size={26} />
-        </button>
-      )}
-
-      <ConfirmDialog
-        open={logoutConfirmOpen}
-        title="Se deconnecter ?"
-        confirmLabel="Se deconnecter"
-        onConfirm={() => {
-          setLogoutConfirmOpen(false)
-          logout()
-        }}
-        onCancel={() => setLogoutConfirmOpen(false)}
-      />
+      <button className="fab" onClick={() => navigate('/note/new')} title="Nouvelle note">
+        <Plus size={28} />
+      </button>
 
       <ConfirmDialog
         open={!!confirmAction}
@@ -479,10 +484,20 @@ export default function HomePage() {
         confirmLabel={confirmAction?.confirmLabel}
         danger={confirmAction?.danger}
         onConfirm={() => {
-          confirmAction?.onConfirm()
+          const action = confirmAction?.onConfirm
           setConfirmAction(null)
+          action?.()
         }}
         onCancel={() => setConfirmAction(null)}
+      />
+
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        title="Se déconnecter ?"
+        message="Tu seras redirigé vers la page de connexion."
+        confirmLabel="Déconnexion"
+        onConfirm={() => { setLogoutConfirmOpen(false); logout() }}
+        onCancel={() => setLogoutConfirmOpen(false)}
       />
     </div>
   )
