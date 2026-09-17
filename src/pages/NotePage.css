@@ -26,6 +26,17 @@
 .toolbar-actions {
   display: flex;
   gap: 4px;
+  /* 8-9 icônes ne tiennent pas sur un écran mobile étroit : sans ça,
+     elles débordaient de la boîte colorée de la note et s'affichaient
+     sur le fond neutre derrière. On les fait défiler horizontalement
+     à la place, plutôt que de les laisser déborder. */
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.toolbar-actions::-webkit-scrollbar {
+  display: none;
 }
 
 .icon-btn {
@@ -36,6 +47,7 @@
   border-radius: 50%;
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -186,6 +186,10 @@
   overflow-x: auto;
   padding: 8px 16px;
   scrollbar-width: none;
+  /* Fondu en bordure droite pour signaler qu'il y a d'autres tags à
+     découvrir, au lieu d'une coupure nette en plein milieu d'un chip. */
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+  mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
 }
 
 .label-filter-bar::-webkit-scrollbar {

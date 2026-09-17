@@ -71,6 +71,15 @@
   opacity: 0.85;
 }
 
+/* Sans titre, le contenu (ou le compteur de checklist) devient la
+   première ligne de la carte — il lui faut donc la même marge que
+   .note-title pour ne pas passer sous les icônes épingle/favori
+   (positionnées en absolu en haut à droite via .note-card-actions). */
+.note-content,
+.checklist-count {
+  padding-right: 42px;
+}
+
 .checklist {
   list-style: none;
   font-size: 0.9rem;
