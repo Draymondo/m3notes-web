@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Lock, LockKeyhole, Plus, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useVault } from '../context/VaultContext'
@@ -26,7 +25,7 @@ export default function VaultPage() {
   const [confirmDeleteNote, setConfirmDeleteNote] = useState(null)
   const [subscriptionError, setSubscriptionError] = useState('')
 
-  const transferNote = location.state?.transferNote
+  const transferNotes = location.state?.transferNotes || (location.state?.transferNote ? [location.state.transferNote] : [])
 
   useEffect(() => {
     checkVaultExists()
@@ -63,27 +62,29 @@ export default function VaultPage() {
   }, [rawNotes, vaultKey])
 
   useEffect(() => {
-    if (!vaultKey || !transferNote || transferBusy) return
+    if (!vaultKey || transferNotes.length === 0 || transferBusy) return
     let cancelled = false
     setTransferBusy(true)
     setError('')
     ;(async () => {
       try {
-        await createVaultNote(user.uid, vaultKey, {
-          title: transferNote.title || '',
-          content: transferNote.content || ''
-        })
-        await permanentlyDeleteNote(transferNote.id)
+        await Promise.all(transferNotes.map(async note => {
+          await createVaultNote(user.uid, vaultKey, {
+            title: note.title || '',
+            content: note.content || ''
+          })
+          await permanentlyDeleteNote(note.id)
+        }))
         if (!cancelled) navigate('/vault', { replace: true, state: {} })
       } catch (err) {
         console.error('Vault transfer error:', err)
-        if (!cancelled) setError('Impossible de transférer la note dans le coffre.')
+        if (!cancelled) setError('Impossible de transférer une ou plusieurs notes dans le coffre.')
       } finally {
         if (!cancelled) setTransferBusy(false)
       }
     })()
     return () => { cancelled = true }
-  }, [vaultKey, transferNote, transferBusy, user, navigate])
+  }, [vaultKey, transferNotes, transferBusy, user, navigate])
 
   const handleSetup = async () => {
     setError('')
@@ -195,7 +196,7 @@ export default function VaultPage() {
 
       <main className="vault-notes-area">
         {subscriptionError && <p className="vault-error" role="alert">{subscriptionError}</p>}
-        {transferBusy && <p className="vault-transfer-status">Transfert de la note dans le coffre…</p>}
+        {transferBusy && <p className="vault-transfer-status">Transfert de {transferNotes.length > 1 ? `${transferNotes.length} notes` : 'la note'} dans le coffre…</p>}
         {decrypted.length === 0 ? (
           <p className="empty">Coffre vide</p>
         ) : (
