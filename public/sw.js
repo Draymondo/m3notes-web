@@ -1,7 +1,6 @@
 // La version de cache et la liste de précache ci-dessous sont injectées au
 // build par le plugin sw-precache de vite.config.js, à partir du contenu
-// réel de dist/. En dev (npm run dev), ce fichier n'est pas enregistré
-// comme SW (voir main.jsx) donc ce template n'est jamais exécuté tel quel.
+// réel de dist/.
 const CACHE_NAME = 'm3notes-shell-__BUILD_VERSION__'
 const PRECACHE_URLS = __PRECACHE_URLS__
 
@@ -26,16 +25,18 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
 
   const url = new URL(request.url)
+
+  // Le service worker ne doit jamais intercepter sa propre mise à jour.
+  // Sinon l'ancien SW peut mettre sw.js en cache et empêcher définitivement
+  // le navigateur de récupérer la nouvelle version.
+  if (url.pathname.endsWith('/sw.js')) return
+
   // Ne jamais intercepter les requêtes cross-origin (Firestore, Auth,
-  // Storage...) : les mettre en cache ici n'aurait pas de sens et ça
-  // ralentissait/perturbait le canal temps réel de Firestore.
+  // Storage...).
   if (url.origin !== self.location.origin) return
 
   event.respondWith(
     caches.match(request).then((cached) => {
-      // App shell : servi depuis le cache en premier (rapide, y compris
-      // hors-ligne), avec mise à jour silencieuse en arrière-plan si une
-      // ressource non précachée doit être récupérée.
       if (cached) return cached
 
       return fetch(request)
