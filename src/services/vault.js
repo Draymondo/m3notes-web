@@ -48,11 +48,11 @@ export async function decryptText(key, payload) {
 
 async function patchVaultNote(noteId, fields) {
   const { db, updateDoc, doc, Timestamp } = await getFirestoreCtx()
-  // Firestore applique immédiatement la modification au cache local et
-  // synchronise ensuite avec le serveur. Ne pas attendre l'ACK réseau ici :
-  // une connexion lente ou temporairement indisponible ne doit pas bloquer
-  // l'enregistrement côté interface.
-  await updateDoc(doc(db, NOTES, noteId), { ...fields, updatedAt: Timestamp.now() })
+  // Firestore applique immédiatement la modification au cache local. Le
+  // résultat réseau ne doit pas bloquer le retour à la liste du coffre.
+  updateDoc(doc(db, NOTES, noteId), { ...fields, updatedAt: Timestamp.now() }).catch((err) => {
+    console.error('Vault note sync error:', err)
+  })
 }
 
 export async function getVaultMeta(userId) {
@@ -114,10 +114,11 @@ export function subscribeVaultNotes(userId, callback) {
 }
 
 export async function createVaultNote(userId, key, { title, content }) {
-  const { db, addDoc, collection, serverTimestamp, Timestamp } = await getFirestoreCtx()
+  const { db, doc, collection, setDoc, serverTimestamp, Timestamp } = await getFirestoreCtx()
   const encTitle = await encryptText(key, title)
   const encContent = await encryptText(key, content)
-  const ref = await addDoc(collection(db, NOTES), {
+  const ref = doc(collection(db, NOTES))
+  setDoc(ref, {
     userId,
     isVault: true,
     isPinned: false,
@@ -128,6 +129,8 @@ export async function createVaultNote(userId, key, { title, content }) {
     encContent,
     createdAt: serverTimestamp(),
     updatedAt: Timestamp.now()
+  }).catch((err) => {
+    console.error('Vault note sync error:', err)
   })
   return ref.id
 }
