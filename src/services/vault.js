@@ -48,6 +48,10 @@ export async function decryptText(key, payload) {
 
 async function patchVaultNote(noteId, fields) {
   const { db, updateDoc, doc, Timestamp } = await getFirestoreCtx()
+  // Firestore applique immédiatement la modification au cache local et
+  // synchronise ensuite avec le serveur. Ne pas attendre l'ACK réseau ici :
+  // une connexion lente ou temporairement indisponible ne doit pas bloquer
+  // l'enregistrement côté interface.
   await updateDoc(doc(db, NOTES, noteId), { ...fields, updatedAt: Timestamp.now() })
 }
 
