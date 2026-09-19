@@ -3,7 +3,8 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
 import { useAuth } from '../context/AuthContext'
 import { getFirestoreCtx } from '../firebase'
-import { createNote, updateNoteWithHistory, duplicateNote, subscribeNoteHistory, restoreHistoryVersion } from '../services/notes'
+import { createNote, updateNote, updateNoteWithHistory, duplicateNote, subscribeNoteHistory, restoreHistoryVersion } from '../services/notes'
+import { getDriveAccessToken, uploadDriveFile, deleteDriveFile } from '../services/drive'
 
 export function useNote() {
   const { id } = useParams()
@@ -22,6 +23,9 @@ export function useNote() {
   const [isChecklist, setIsChecklist] = useState(false)
   const [checklist, setChecklist] = useState([])
   const [labels, setLabels] = useState([])
+  const [attachments, setAttachments] = useState([])
+  const [attachmentError, setAttachmentError] = useState('')
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false)
   const [history, setHistory] = useState([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -42,6 +46,7 @@ export function useNote() {
     setIsChecklist(data.isChecklist || false)
     setChecklist(data.checklist || [])
     setLabels(data.labels || [])
+    setAttachments(data.attachments || [])
   }
 
   useEffect(() => {
@@ -120,6 +125,57 @@ export function useNote() {
     setIsChecklist(false)
   }
 
+  const attachFiles = async (files) => {
+    if (isNew || !user) return
+    setAttachmentError('')
+    setAttachmentsLoading(true)
+    try {
+      const accessToken = await getDriveAccessToken()
+      for (const file of files) {
+        const uploaded = await uploadDriveFile(file, accessToken, id)
+        const attachment = {
+          driveFileId: uploaded.id,
+          name: uploaded.name || file.name,
+          mimeType: uploaded.mimeType || file.type || 'application/octet-stream',
+          size: Number(uploaded.size || file.size || 0),
+          webViewLink: uploaded.webViewLink || `https://drive.google.com/file/d/${uploaded.id}/view`,
+          createdTime: uploaded.createdTime || new Date().toISOString()
+        }
+        const next = [...attachments, attachment]
+        try {
+          await updateNote(id, { attachments: next })
+          setAttachments(next)
+        } catch (err) {
+          await deleteDriveFile(attachment.driveFileId, accessToken).catch(() => {})
+          throw err
+        }
+      }
+    } catch (err) {
+      console.error('Attachment upload error:', err)
+      setAttachmentError(err.message || 'Impossible d’ajouter la pièce jointe.')
+    } finally {
+      setAttachmentsLoading(false)
+    }
+  }
+
+  const removeAttachment = async (attachment) => {
+    if (!user || isNew) return
+    setAttachmentError('')
+    setAttachmentsLoading(true)
+    try {
+      const accessToken = await getDriveAccessToken()
+      await deleteDriveFile(attachment.driveFileId, accessToken)
+      const next = attachments.filter(item => item.driveFileId !== attachment.driveFileId)
+      await updateNote(id, { attachments: next })
+      setAttachments(next)
+    } catch (err) {
+      console.error('Attachment removal error:', err)
+      setAttachmentError(err.message || 'Impossible de supprimer la pièce jointe.')
+    } finally {
+      setAttachmentsLoading(false)
+    }
+  }
+
   const save = async () => {
     if (!user) return
     setSaveError('')
@@ -133,7 +189,8 @@ export function useNote() {
       isArchived,
       isChecklist,
       checklist: isChecklist ? cleanChecklist : [],
-      labels
+      labels,
+      attachments
     }
     const isEmpty = !data.title && !data.content && (!isChecklist || cleanChecklist.length === 0)
     try {
@@ -201,6 +258,7 @@ export function useNote() {
     labels, addLabel, removeLabel, switchToChecklist, switchToText,
     save, loadError, saveError, shareError, handleShare, askDelete, askArchiveToggle,
     askDuplicate, confirmAction, confirmAndRun, cancelConfirm,
-    history, historyOpen, setHistoryOpen, historyLoading, historyError, restoreVersion
+    history, historyOpen, setHistoryOpen, historyLoading, historyError, restoreVersion,
+    attachments, attachmentError, attachmentsLoading, attachFiles, removeAttachment
   }
 }
