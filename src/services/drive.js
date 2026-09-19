@@ -5,6 +5,9 @@ const DRIVE_FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
 const UPLOAD_URL = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable'
 const DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files'
 
+let cachedAccessToken = null
+let cachedTokenExpiresAt = 0
+
 function driveError(response, fallback) {
   return response.json().catch(() => null).then(body => {
     const message = body?.error?.message
@@ -13,6 +16,8 @@ function driveError(response, fallback) {
 }
 
 export async function getDriveAccessToken() {
+  if (cachedAccessToken && Date.now() < cachedTokenExpiresAt) return cachedAccessToken
+
   const user = auth.currentUser
   if (!user) throw new Error('Vous devez être connecté.')
 
@@ -31,7 +36,11 @@ export async function getDriveAccessToken() {
     throw new Error('Google n’a pas fourni l’autorisation Drive.')
   }
 
-  return credential.accessToken
+  cachedAccessToken = credential.accessToken
+  // Google access tokens are short-lived; keep this only in memory and
+  // refresh a little before the expected expiry.
+  cachedTokenExpiresAt = Date.now() + 50 * 60 * 1000
+  return cachedAccessToken
 }
 
 export async function uploadDriveFile(file, accessToken, noteId) {
