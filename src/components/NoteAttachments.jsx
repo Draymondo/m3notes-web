@@ -1,4 +1,5 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { getDriveAccessToken } from '../services/drive'
 import { ExternalLink, Paperclip, Trash2 } from 'lucide-react'
 import './NoteAttachments.css'
 
@@ -10,6 +11,27 @@ function formatSize(bytes) {
 
 export default function NoteAttachments({ attachments, onAdd, onRemove, disabled }) {
   const inputRef = useRef(null)
+  const [authorizing, setAuthorizing] = useState(false)
+  const [authError, setAuthError] = useState('')
+
+  const chooseFiles = async () => {
+    setAuthError('')
+    if (disabled || authorizing) return
+    try {
+      // Important on mobile: open the Google authorization popup directly from
+      // the button gesture, before opening the native file picker. If the
+      // picker is opened first, the browser may no longer consider the later
+      // OAuth popup user-initiated and block it.
+      setAuthorizing(true)
+      await getDriveAccessToken()
+      inputRef.current?.click()
+    } catch (err) {
+      console.error('Drive authorization error:', err)
+      setAuthError(err.message || 'Autorisation Google Drive impossible.')
+    } finally {
+      setAuthorizing(false)
+    }
+  }
 
   return (
     <section className="note-attachments" aria-label="Pièces jointes">
@@ -21,11 +43,12 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
         <button
           type="button"
           className="attachments-add"
-          onClick={() => inputRef.current?.click()}
+          onClick={chooseFiles}
           disabled={disabled}
         >
           Ajouter
         </button>
+        {authError && <p className="attachments-error" role="alert">{authError}</p>}
         <input
           ref={inputRef}
           type="file"
