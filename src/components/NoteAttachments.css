@@ -91,3 +91,10 @@
   display: flex;
   flex: 0 0 auto;
 }
+
+
+.attachments-error {
+  margin: 10px 0 0;
+  color: var(--danger, #c62828);
+  font-size: 0.85rem;
+}
