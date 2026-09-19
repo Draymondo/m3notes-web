@@ -6,6 +6,7 @@ import ChecklistEditor from '../components/ChecklistEditor'
 import LabelEditor from '../components/LabelEditor'
 import ConfirmDialog from '../components/ConfirmDialog'
 import MarkdownRenderer from '../components/MarkdownRenderer'
+import NoteAttachments from '../components/NoteAttachments'
 import './NotePage.css'
 
 function formatHistoryDate(timestamp) {
@@ -52,6 +53,16 @@ export default function NotePage() {
       ) : (
         <textarea className="note-content-input" placeholder="Note" value={note.content} onChange={e => note.setContent(e.target.value)} rows={12} />
       )}
+
+      {!note.isNew && (
+        <NoteAttachments
+          attachments={note.attachments}
+          onAdd={note.attachFiles}
+          onRemove={note.removeAttachment}
+          disabled={note.attachmentsLoading}
+        />
+      )}
+      {note.attachmentError && <p className="note-error" role="alert">{note.attachmentError}</p>}
 
       {note.historyOpen && <div className="history-overlay" role="dialog" aria-modal="true" aria-label="Historique de la note">
         <div className="history-panel">
