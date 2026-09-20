@@ -33,6 +33,8 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
     }
   }
 
+  if (!editable && attachments.length === 0) return null
+
   return (
     <section className={`note-attachments ${attachments.length ? 'has-attachments' : ''}`} aria-label="Pièces jointes">
       {attachments.length === 0 ? (
@@ -113,19 +115,20 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
 
       {editable && authError && <p className="attachments-error" role="alert">{authError}</p>}
 
-      {editable && <input
-        ref={inputRef}
-        type="file"
-        multiple
-        accept="image/*,.pdf,.txt,.md,text/plain,text/markdown,application/pdf"
-        hidden
+      {editable && (
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept="image/*,.pdf,.txt,.md,text/plain,text/markdown,application/pdf"
+          hidden
           onChange={e => {
             const files = Array.from(e.target.files || [])
             if (files.length) onAdd(files)
             e.target.value = ''
           }}
-        />}
-    </section>
+        />
+      )}
     </section>
   )
 }
