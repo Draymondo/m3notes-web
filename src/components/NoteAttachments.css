@@ -1,15 +1,37 @@
 .note-attachments {
-  margin: 4px 20px 28px;
-  padding: 14px;
-  border: 1px solid rgba(127,127,127,0.22);
-  border-radius: 12px;
-  background: rgba(127,127,127,0.06);
+  margin: 8px 20px 28px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(127,127,127,0.22);
+}
+
+.note-attachments.has-attachments {
+  padding-bottom: 4px;
+}
+
+.attachments-empty-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  opacity: 0.72;
+}
+
+.attachments-empty-action:hover:not(:disabled) {
+  opacity: 1;
 }
 
 .attachments-header {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-bottom: 10px;
 }
 
 .attachments-title {
@@ -17,7 +39,14 @@
   align-items: center;
   gap: 8px;
   flex: 1;
+  min-width: 0;
   font-weight: 700;
+}
+
+.attachments-count {
+  opacity: 0.55;
+  font-size: 0.82rem;
+  font-weight: 500;
 }
 
 .attachments-add,
@@ -35,8 +64,7 @@
 }
 
 .attachments-add {
-  padding: 7px 10px;
-  background: rgba(26,115,232,0.12);
+  padding: 6px 8px;
   color: var(--primary);
   font-weight: 600;
 }
@@ -55,18 +83,42 @@
 
 .attachment-list {
   display: grid;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
 }
 
 .attachment-item {
   display: flex;
   align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 0;
+}
+
+.attachment-main {
+  display: flex;
+  align-items: center;
   gap: 10px;
   min-width: 0;
-  padding: 9px 10px;
-  border-radius: 9px;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.attachment-main:hover {
   background: rgba(127,127,127,0.08);
+}
+
+.attachment-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(127,127,127,0.1);
+  opacity: 0.75;
 }
 
 .attachment-info {
@@ -92,9 +144,8 @@
   flex: 0 0 auto;
 }
 
-
 .attachments-error {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   color: var(--danger, #c62828);
   font-size: 0.85rem;
 }
