@@ -89,5 +89,9 @@ export async function deleteDriveFile(fileId, accessToken) {
     }
   })
 
+  // Si le fichier a déjà été supprimé de Google Drive, il n’y a plus rien
+  // à supprimer côté Drive. On peut donc retirer sa référence de la note.
+  if (response.status === 404) return
+
   if (!response.ok) throw await driveError(response, 'Impossible de supprimer le fichier de Google Drive.')
 }
