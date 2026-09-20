@@ -60,6 +60,7 @@ export default function NotePage() {
           onAdd={note.attachFiles}
           onRemove={note.removeAttachment}
           disabled={note.attachmentsLoading}
+          editable={!previewOpen || note.isChecklist}
         />
       )}
       {note.attachmentError && <p className="note-error" role="alert">{note.attachmentError}</p>}
