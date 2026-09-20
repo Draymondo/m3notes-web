@@ -13,7 +13,7 @@ function fileIcon(mimeType) {
   return mimeType?.startsWith('image/') ? <Image size={19} /> : <FileText size={19} />
 }
 
-export default function NoteAttachments({ attachments, onAdd, onRemove, disabled }) {
+export default function NoteAttachments({ attachments, onAdd, onRemove, disabled, editable = true }) {
   const inputRef = useRef(null)
   const [authorizing, setAuthorizing] = useState(false)
   const [authError, setAuthError] = useState('')
@@ -54,15 +54,17 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
               <span>Pièces jointes</span>
               <span className="attachments-count">{attachments.length}</span>
             </div>
-            <button
-              type="button"
-              className="attachments-add"
-              onClick={chooseFiles}
-              disabled={disabled || authorizing}
-              aria-busy={authorizing}
-            >
-              {authorizing ? 'Connexion…' : '+ Ajouter'}
-            </button>
+            {editable && (
+              <button
+                type="button"
+                className="attachments-add"
+                onClick={chooseFiles}
+                disabled={disabled || authorizing}
+                aria-busy={authorizing}
+              >
+                {authorizing ? 'Connexion…' : '+ Ajouter'}
+              </button>
+            )}
           </div>
 
           <div className="attachment-list">
@@ -91,36 +93,39 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
                     </span>
                   </div>
                 )}
-                <div className="attachment-actions">
-                  {file.webViewLink && (
-                    <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" title="Ouvrir">
-                      <ExternalLink size={17} />
-                    </a>
-                  )}
-                  <button type="button" onClick={() => onRemove(file)} title="Retirer de la note" disabled={disabled}>
-                    <Trash2 size={17} />
-                  </button>
-                </div>
+                {editable && (
+                  <div className="attachment-actions">
+                    {file.webViewLink && (
+                      <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" title="Ouvrir">
+                        <ExternalLink size={17} />
+                      </a>
+                    )}
+                    <button type="button" onClick={() => onRemove(file)} title="Retirer de la note" disabled={disabled}>
+                      <Trash2 size={17} />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </>
       )}
 
-      {authError && <p className="attachments-error" role="alert">{authError}</p>}
+      {editable && authError && <p className="attachments-error" role="alert">{authError}</p>}
 
-      <input
+      {editable && <input
         ref={inputRef}
         type="file"
         multiple
         accept="image/*,.pdf,.txt,.md,text/plain,text/markdown,application/pdf"
         hidden
-        onChange={e => {
-          const files = Array.from(e.target.files || [])
-          if (files.length) onAdd(files)
-          e.target.value = ''
-        }}
-      />
+          onChange={e => {
+            const files = Array.from(e.target.files || [])
+            if (files.length) onAdd(files)
+            e.target.value = ''
+          }}
+        />}
+    </section>
     </section>
   )
 }
