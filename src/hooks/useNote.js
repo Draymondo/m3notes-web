@@ -24,6 +24,8 @@ export function useNote() {
   const [checklist, setChecklist] = useState([])
   const [labels, setLabels] = useState([])
   const [attachments, setAttachments] = useState([])
+  const [createdAt, setCreatedAt] = useState(null)
+  const [updatedAt, setUpdatedAt] = useState(null)
   const [attachmentError, setAttachmentError] = useState('')
   const [attachmentsLoading, setAttachmentsLoading] = useState(false)
   const [history, setHistory] = useState([])
@@ -47,6 +49,8 @@ export function useNote() {
     setChecklist(data.checklist || [])
     setLabels(data.labels || [])
     setAttachments(data.attachments || [])
+    setCreatedAt(data.createdAt || null)
+    setUpdatedAt(data.updatedAt || null)
   }
 
   useEffect(() => {
@@ -259,6 +263,7 @@ export function useNote() {
     save, loadError, saveError, shareError, handleShare, askDelete, askArchiveToggle,
     askDuplicate, confirmAction, confirmAndRun, cancelConfirm,
     history, historyOpen, setHistoryOpen, historyLoading, historyError, restoreVersion,
-    attachments, attachmentError, attachmentsLoading, attachFiles, removeAttachment
+    attachments, attachmentError, attachmentsLoading, attachFiles, removeAttachment,
+    createdAt, updatedAt
   }
 }
