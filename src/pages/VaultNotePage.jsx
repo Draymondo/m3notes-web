@@ -21,6 +21,7 @@ export default function VaultNotePage() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [attachments, setAttachments] = useState([])
+  const [createdAt, setCreatedAt] = useState(null)
   const [updatedAt, setUpdatedAt] = useState(null)
   const [loading, setLoading] = useState(!isNew)
   const [loadError, setLoadError] = useState('')
@@ -39,6 +40,7 @@ export default function VaultNotePage() {
       setTitle(passedNote.title || '')
       setContent(passedNote.content || '')
       setAttachments(passedNote.attachments || [])
+      setCreatedAt(passedNote.createdAt || null)
       setUpdatedAt(passedNote.updatedAt || null)
       setLoadError('')
       setLoading(false)
@@ -59,6 +61,7 @@ export default function VaultNotePage() {
           setTitle(decoded.title)
           setContent(decoded.content)
           setAttachments(decoded.attachments || [])
+          setCreatedAt(snap.data().createdAt || null)
           setUpdatedAt(snap.data().updatedAt || null)
         }
       } catch {
@@ -124,7 +127,7 @@ export default function VaultNotePage() {
         onChange={e => setTitle(e.target.value)}
         autoFocus={isNew}
       />
-      {!isNew && updatedAt && <time className="vault-note-date-detail" dateTime={updatedAt?.toDate ? updatedAt.toDate().toISOString() : undefined}>{formatNoteDate(updatedAt)}</time>}
+      {!isNew && (updatedAt || createdAt) && <time className="vault-note-date-detail" dateTime={(updatedAt || createdAt)?.toDate ? (updatedAt || createdAt).toDate().toISOString() : undefined}>{formatNoteDate(updatedAt || createdAt, { prefix: updatedAt ? 'Modifiée' : 'Créée' })}</time>}
       <textarea
         className="vault-content-input"
         placeholder="Note confidentielle"
