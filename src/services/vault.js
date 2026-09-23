@@ -81,9 +81,7 @@ async function decryptAttachments(key, payload) {
 
 async function patchVaultNote(noteId, fields) {
   const { db, updateDoc, doc, Timestamp } = await getFirestoreCtx()
-  updateDoc(doc(db, NOTES, noteId), { ...fields, updatedAt: Timestamp.now() }).catch((err) => {
-    console.error('Vault note sync error:', err)
-  })
+  await updateDoc(doc(db, NOTES, noteId), { ...fields, updatedAt: Timestamp.now() })
 }
 
 export async function getVaultMeta(userId) {
@@ -123,14 +121,18 @@ export function subscribeVaultNotes(userId, callback) {
     if (cancelled) return
     const q = query(
       collection(db, NOTES),
-      where('userId', '==', userId),
-      orderBy('isPinned', 'desc'),
-      orderBy('updatedAt', 'desc')
+      where('userId', '==', userId)
     )
     unsub = onSnapshot(q, (snap) => {
       const notes = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
         .filter(n => n.isVault)
+        .sort((a, b) => {
+          const pinDiff = Number(!!b.isPinned) - Number(!!a.isPinned)
+          if (pinDiff !== 0) return pinDiff
+          const toMillis = value => value?.toMillis?.() || 0
+          return toMillis(b.updatedAt || b.createdAt) - toMillis(a.updatedAt || a.createdAt)
+        })
       callback(notes)
     }, (err) => {
       console.error('Vault subscription error:', err)
@@ -150,7 +152,7 @@ export async function createVaultNote(userId, key, { title, content, attachments
   const encContent = await encryptText(key, content)
   const encAttachments = await encryptAttachments(key, attachments)
   const ref = doc(collection(db, NOTES))
-  setDoc(ref, {
+  await setDoc(ref, {
     userId,
     isVault: true,
     isPinned: false,
