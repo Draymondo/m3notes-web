@@ -1,4 +1,13 @@
-const EXPORT_VERSION = 1
+const EXPORT_VERSION = 2
+
+function serializeValue(value) {
+  if (value && typeof value.toMillis === 'function') return { __type: 'timestamp', value: value.toMillis() }
+  if (Array.isArray(value)) return value.map(serializeValue)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, serializeValue(item)]))
+  }
+  return value
+}
 
 function toMillis(value) {
   if (!value) return null
@@ -52,6 +61,23 @@ export function exportJson(notes, filename = 'm3notes-sauvegarde') {
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
     notes: notes.map(serializeNote)
+  }
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' })
+  downloadBlob(blob, `${safeFilename(filename)}.json`)
+}
+
+
+export function exportCompleteBackup(data, filename = 'm3notes-sauvegarde-complete') {
+  const payload = {
+    app: 'M3Notes',
+    backupType: 'complete-firestore-data',
+    version: EXPORT_VERSION,
+    exportedAt: new Date().toISOString(),
+    userData: serializeValue(data),
+    limitations: [
+      'Les fichiers binaires stockés sur Google Drive ne sont pas inclus dans ce fichier JSON.',
+      'Les références de pièces jointes sont conservées.'
+    ]
   }
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' })
   downloadBlob(blob, `${safeFilename(filename)}.json`)
