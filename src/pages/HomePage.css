@@ -309,3 +309,34 @@
   font-size: 0.95rem;
   font-weight: 500;
 }
+
+/* Device profiles: phone -> laptop -> large 4K TV */
+@media (min-width: 1200px) {
+  .topbar { padding: 14px 28px; gap: 20px; }
+  .topbar h1 { font-size: 1.35rem; }
+  .search-box { max-width: 560px; }
+  .notes-area { max-width: 1600px; padding: 28px 32px 120px; }
+  .notes-grid { column-count: 4; column-gap: 18px; }
+}
+
+@media (min-width: 1800px) {
+  .topbar { padding-left: 48px; padding-right: 48px; }
+  .notes-area { max-width: 1800px; padding-left: 40px; padding-right: 40px; }
+  .notes-grid { column-count: 5; column-gap: 20px; }
+  .note-card { padding: 18px 20px; }
+  .note-title { font-size: 1.08rem; }
+  .note-content { font-size: 0.98rem; }
+  .label-filter-bar { padding-left: 0; padding-right: 0; }
+  .filter-row { padding-left: 0; padding-right: 0; }
+}
+
+@media (min-width: 3000px) {
+  .topbar { padding: 16px 64px; }
+  .topbar-actions button { width: 44px; height: 44px; }
+  .notes-area { max-width: 2000px; padding: 36px 48px 140px; }
+  .notes-grid { column-count: 5; column-gap: 24px; }
+  .note-card { padding: 20px 22px; border-radius: 14px; }
+  .note-title { font-size: 1.15rem; }
+  .note-content { font-size: 1rem; line-height: 1.5; }
+  .fab { width: 64px; height: 64px; right: 48px; bottom: 40px; }
+}
