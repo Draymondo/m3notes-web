@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { Pin, Star, CheckSquare, Square, RotateCcw, Trash2, CheckCircle2, Circle } from 'lucide-react'
 import MarkdownRenderer from './MarkdownRenderer'
+import { formatNoteDate } from '../utils/noteDate'
 import './NoteCard.css'
 
 const colorClass = {
@@ -49,6 +50,7 @@ export default function NoteCard({ note, onClick, onLabelClick, onFavoriteToggle
         <button className={`favorite-btn ${note.isFavorite ? 'active' : ''}`} onTouchStart={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); onFavoriteToggle?.(note) }} title={note.isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'} aria-label={note.isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}><Star size={16} fill={note.isFavorite ? 'currentColor' : 'none'} /></button>
       </div>}
       {note.title && <h3 className="note-title">{note.title}</h3>}
+      {note.updatedAt && <time className="note-date" dateTime={note.updatedAt?.toDate ? note.updatedAt.toDate().toISOString() : undefined}>{formatNoteDate(note.updatedAt)}</time>}
       {note.isChecklist ? <>
         {checklist.length > 0 && <span className="checklist-count">{checkedCount}/{checklist.length}</span>}
         <ul className="checklist">{checklist.slice(0, 6).map((item, i) => <li key={i} className={item.isChecked ? 'checked' : ''}>{item.isChecked ? <CheckSquare size={14} /> : <Square size={14} />} {item.text}</li>)}{checklist.length > 6 && <li className="more">+{checklist.length - 6}…</li>}</ul>
