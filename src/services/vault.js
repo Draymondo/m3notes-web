@@ -180,6 +180,10 @@ export async function updateVaultAttachments(noteId, key, attachments) {
   return patchVaultNote(noteId, { encAttachments })
 }
 
+export async function toggleVaultNotePin(noteId, isPinned) {
+  return patchVaultNote(noteId, { isPinned: !isPinned })
+}
+
 export async function uploadVaultAttachment(file, key, noteId, accessToken) {
   const token = accessToken || await getDriveAccessToken()
   const encryptedBytes = await encryptBytes(key, await file.arrayBuffer())
