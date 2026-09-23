@@ -64,9 +64,16 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
     if (busy || openingId) return
     setError('')
     setOpeningId(attachment.driveFileId)
+    const targetWindow = window.open('', '_blank')
+    if (!targetWindow) {
+      setError('Le navigateur a bloqué l’ouverture du fichier.')
+      setOpeningId('')
+      return
+    }
     try {
-      await openVaultAttachment(attachment, vaultKey)
+      await openVaultAttachment(attachment, vaultKey, targetWindow)
     } catch (err) {
+      targetWindow.close()
       console.error('Vault attachment open error:', err)
       setError(err.message || 'Impossible d’ouvrir le fichier du coffre.')
     } finally {
