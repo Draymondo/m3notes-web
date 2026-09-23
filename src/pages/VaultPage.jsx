@@ -7,6 +7,7 @@ import { subscribeVaultNotes, decryptVaultNote, deleteVaultNote, createVaultNote
 import { permanentlyDeleteNote } from '../services/notes'
 import ConfirmDialog from '../components/ConfirmDialog'
 import './VaultPage.css'
+import { formatNoteDate } from '../utils/noteDate'
 
 export default function VaultPage() {
   const { user } = useAuth()
@@ -211,6 +212,7 @@ export default function VaultPage() {
                 <div className="vault-note-text">
                   <h3>{note.title || '(sans titre)'}</h3>
                   <p>{(note.content || '').slice(0, 80)}</p>
+                  {note.updatedAt && <time className="vault-note-date" dateTime={note.updatedAt?.toDate ? note.updatedAt.toDate().toISOString() : undefined}>{formatNoteDate(note.updatedAt)}</time>}
                 </div>
                 <button
                   className="vault-note-delete"
