@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { FileText, Image, Paperclip, Trash2 } from 'lucide-react'
+import { Download, FileText, Image, Paperclip, Trash2 } from 'lucide-react'
 import { getDriveAccessToken } from '../services/drive'
 import {
+  downloadVaultAttachment,
   openVaultAttachment,
   removeVaultAttachment,
   updateVaultAttachments,
@@ -24,6 +25,7 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
   const [authorizing, setAuthorizing] = useState(false)
   const [driveToken, setDriveToken] = useState(null)
   const [openingId, setOpeningId] = useState('')
+  const [downloadingId, setDownloadingId] = useState('')
   const [error, setError] = useState('')
 
   const chooseFiles = async () => {
@@ -107,6 +109,20 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
     }
   }
 
+  const downloadFile = async attachment => {
+    if (busy || openingId || downloadingId) return
+    setError('')
+    setDownloadingId(attachment.driveFileId)
+    try {
+      await downloadVaultAttachment(attachment, vaultKey)
+    } catch (err) {
+      console.error('Vault attachment download error:', err)
+      setError(err.message || 'Impossible de télécharger le fichier du coffre.')
+    } finally {
+      setDownloadingId('')
+    }
+  }
+
   return (
     <section className="vault-attachments" aria-label="Pièces jointes du coffre">
       <div className="vault-attachments-header">
@@ -161,9 +177,19 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
 
               <button
                 type="button"
+                className="vault-attachment-download"
+                onClick={() => downloadFile(file)}
+                disabled={busy || !!openingId || !!downloadingId}
+                title="Télécharger le fichier déchiffré"
+              >
+                <Download size={17} />
+              </button>
+
+              <button
+                type="button"
                 className="vault-attachment-delete"
                 onClick={() => removeFile(file)}
-                disabled={busy || !!openingId}
+                disabled={busy || !!openingId || !!downloadingId}
                 title="Retirer du coffre"
               >
                 <Trash2 size={17} />
