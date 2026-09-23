@@ -142,14 +142,35 @@
   opacity: 0.8;
 }
 
-.vault-note-delete {
-  background: none;
-  border: none;
-  padding: 6px;
-  opacity: 0.5;
+.vault-note-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   flex-shrink: 0;
 }
 
+.vault-note-pin,
+.vault-note-delete {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 6px;
+  color: var(--text-secondary);
+  opacity: 0.65;
+}
+
+.vault-note-pin:hover,
 .vault-note-delete:hover {
+  background: var(--border);
+  color: var(--text);
   opacity: 1;
+}
+
+.vault-note-pin {
+  color: var(--primary);
 }
