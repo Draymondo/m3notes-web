@@ -5,6 +5,7 @@
 .favorite-btn { width: 30px; height: 30px; padding: 5px; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 50%; background: transparent; color: currentColor; opacity: 0.55; cursor: pointer; }
 .favorite-btn:hover, .favorite-btn.active { opacity: 1; }
 .note-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; line-height: 1.3; padding-right: 42px; }
+.note-date { display: block; margin-top: 9px; font-family: 'Google Sans', 'Segoe UI', Roboto, -apple-system, sans-serif; font-size: 0.72rem; line-height: 1.3; color: var(--text-secondary, #5f6368); opacity: 0.8; padding-right: 42px; }
 .note-content { font-size: 0.9rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden; opacity: 0.85; }
 .note-content, .checklist-count { padding-right: 42px; }
 .checklist { list-style: none; font-size: 0.9rem; }
