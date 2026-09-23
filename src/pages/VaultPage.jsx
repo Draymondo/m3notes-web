@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Lock, LockKeyhole, Plus, X } from 'lucide-react'
+import { ArrowLeft, Lock, LockKeyhole, Pin, Plus, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useVault } from '../context/VaultContext'
-import { subscribeVaultNotes, decryptVaultNote, deleteVaultNote, createVaultNote } from '../services/vault'
+import { subscribeVaultNotes, decryptVaultNote, deleteVaultNote, createVaultNote, toggleVaultNotePin } from '../services/vault'
 import { permanentlyDeleteNote } from '../services/notes'
 import ConfirmDialog from '../components/ConfirmDialog'
 import './VaultPage.css'
@@ -115,6 +115,16 @@ export default function VaultPage() {
     }
   }
 
+  const togglePin = async (note, event) => {
+    event.stopPropagation()
+    try {
+      await toggleVaultNotePin(note.id, !!note.isPinned)
+    } catch (err) {
+      console.error('Vault pin toggle error:', err)
+      setError('Impossible de modifier l’épinglage de cette note.')
+    }
+  }
+
   const confirmDelete = async () => {
     if (!confirmDeleteNote) return
     try {
@@ -214,8 +224,17 @@ export default function VaultPage() {
                   <p>{(note.content || '').slice(0, 80)}</p>
                   {(note.updatedAt || note.createdAt) && <time className="vault-note-date" dateTime={(note.updatedAt || note.createdAt)?.toDate ? (note.updatedAt || note.createdAt).toDate().toISOString() : undefined}>{formatNoteDate(note.updatedAt || note.createdAt, { prefix: note.updatedAt ? 'Modifiée' : 'Créée' })}</time>}
                 </div>
-                <button
-                  className="vault-note-delete"
+                <div className="vault-note-actions">
+                  <button
+                    className="vault-note-pin"
+                    onClick={e => togglePin(note, e)}
+                    title={note.isPinned ? 'Désépingler' : 'Épingler'}
+                    aria-label={note.isPinned ? 'Désépingler' : 'Épingler'}
+                  >
+                    <Pin size={17} fill={note.isPinned ? 'currentColor' : 'none'} />
+                  </button>
+                  <button
+                    className="vault-note-delete"
                   onClick={e => { e.stopPropagation(); setConfirmDeleteNote(note) }}
                   title="Supprimer"
                 >
