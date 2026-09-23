@@ -88,6 +88,34 @@ export async function uploadDriveFile(file, accessToken, noteId) {
   })
 }
 
+export async function listDriveAttachmentFiles(accessToken) {
+  const files = []
+  let pageToken = ''
+  const query = "appProperties has { key='m3notes' and value='attachment' } and trashed = false"
+  do {
+    const params = new URLSearchParams({
+      q: query,
+      spaces: 'drive',
+      pageSize: '100',
+      fields: 'nextPageToken,files(id,name,mimeType,size,createdTime,modifiedTime,appProperties)'
+    })
+    if (pageToken) params.set('pageToken', pageToken)
+
+    const response = await fetch(`${DRIVE_FILES_URL}?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+
+    if (!response.ok) throw await driveError(response, 'Impossible de lister les fichiers M3Notes sur Google Drive.')
+    const data = await response.json()
+    files.push(...(data.files || []))
+    pageToken = data.nextPageToken || ''
+  } while (pageToken)
+
+  return files
+}
+
 export async function downloadDriveFile(fileId, accessToken) {
   const response = await fetch(`${DRIVE_FILES_URL}/${encodeURIComponent(fileId)}?alt=media`, {
     headers: {
