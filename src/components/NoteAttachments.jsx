@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
-import { getDriveAccessToken } from '../services/drive'
-import { ExternalLink, FileText, Image, Paperclip, Trash2 } from 'lucide-react'
+import { downloadDriveFile, getDriveAccessToken } from '../services/drive'
+import { Download, ExternalLink, FileText, Image, Paperclip, Trash2 } from 'lucide-react'
 import './NoteAttachments.css'
 
 function formatSize(bytes) {
@@ -17,6 +17,7 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
   const inputRef = useRef(null)
   const [authorizing, setAuthorizing] = useState(false)
   const [authError, setAuthError] = useState('')
+  const [downloadingId, setDownloadingId] = useState('')
 
   const chooseFiles = async () => {
     setAuthError('')
@@ -30,6 +31,30 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
       setAuthError(err.message || 'Autorisation Google Drive impossible.')
     } finally {
       setAuthorizing(false)
+    }
+  }
+
+  const downloadFile = async file => {
+    if (downloadingId || disabled) return
+    setAuthError('')
+    setDownloadingId(file.driveFileId)
+    try {
+      const accessToken = await getDriveAccessToken()
+      const bytes = await downloadDriveFile(file.driveFileId, accessToken)
+      const blob = new Blob([bytes], { type: file.mimeType || 'application/octet-stream' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = file.name || 'm3notes-fichier'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    } catch (err) {
+      console.error('Drive download error:', err)
+      setAuthError(err.message || 'Impossible de télécharger le fichier.')
+    } finally {
+      setDownloadingId('')
     }
   }
 
@@ -95,25 +120,33 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
                     </span>
                   </div>
                 )}
-                {editable && (
-                  <div className="attachment-actions">
+                <div className="attachment-actions">
+                  <button
+                    type="button"
+                    onClick={() => downloadFile(file)}
+                    title="Télécharger"
+                    disabled={disabled || !!downloadingId}
+                  >
+                    <Download size={17} />
+                  </button>
+                  {editable && (
                     {file.webViewLink && (
                       <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" title="Ouvrir">
                         <ExternalLink size={17} />
                       </a>
                     )}
-                    <button type="button" onClick={() => onRemove(file)} title="Retirer de la note" disabled={disabled}>
+                    <button type="button" onClick={() => onRemove(file)} title="Retirer de la note" disabled={disabled || !!downloadingId}>
                       <Trash2 size={17} />
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </>
       )}
 
-      {editable && authError && <p className="attachments-error" role="alert">{authError}</p>}
+      {authError && <p className="attachments-error" role="alert">{authError}</p>}
 
       {editable && (
         <input
