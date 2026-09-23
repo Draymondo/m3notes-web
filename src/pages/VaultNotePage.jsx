@@ -120,35 +120,37 @@ export default function VaultNotePage() {
         </span>
       </header>
 
-      <input
-        className="vault-title-input"
-        placeholder="Titre"
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        autoFocus={isNew}
-      />
-      {!isNew && (updatedAt || createdAt) && <time className="vault-note-date-detail" dateTime={(updatedAt || createdAt)?.toDate ? (updatedAt || createdAt).toDate().toISOString() : undefined}>{formatNoteDate(updatedAt || createdAt, { prefix: updatedAt ? 'Modifiée' : 'Créée' })}</time>}
-      <textarea
-        className="vault-content-input"
-        placeholder="Note confidentielle"
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        rows={14}
-      />
-      {saveError && <p className="vault-error" role="alert">{saveError}</p>}
-
-      {!isNew && (
-        <VaultAttachments
-          attachments={attachments}
-          vaultKey={vaultKey}
-          noteId={id}
-          onChange={setAttachments}
-          disabled={loading}
+      <main className="vault-note-content">
+        <input
+          className="vault-title-input"
+          placeholder="Titre"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          autoFocus={isNew}
         />
-      )}
-      {isNew && (
-        <p className="vault-attachment-hint">Enregistre d’abord la note pour pouvoir y ajouter un fichier.</p>
-      )}
+        {!isNew && (updatedAt || createdAt) && <time className="vault-note-date-detail" dateTime={(updatedAt || createdAt)?.toDate ? (updatedAt || createdAt).toDate().toISOString() : undefined}>{formatNoteDate(updatedAt || createdAt, { prefix: updatedAt ? 'Modifiée' : 'Créée' })}</time>}
+        <textarea
+          className="vault-content-input"
+          placeholder="Note confidentielle"
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          rows={14}
+        />
+        {saveError && <p className="vault-error" role="alert">{saveError}</p>}
+
+        {!isNew && (
+          <VaultAttachments
+            attachments={attachments}
+            vaultKey={vaultKey}
+            noteId={id}
+            onChange={setAttachments}
+            disabled={loading}
+          />
+        )}
+        {isNew && (
+          <p className="vault-attachment-hint">Enregistre d’abord la note pour pouvoir y ajouter un fichier.</p>
+        )}
+      </main>
     </div>
   )
 }
