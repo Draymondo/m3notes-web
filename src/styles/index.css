@@ -148,3 +148,11 @@ input, textarea {
 [data-theme="dark"] .note-pink { background: #5b2c40; color: #fdcfe8; }
 [data-theme="dark"] .note-brown { background: #442f19; color: #e6c9a8; }
 [data-theme="dark"] .note-gray { background: #3c4043; color: #e8eaed; }
+
+/* Large-screen reading/layout tokens */
+@media (min-width: 1600px) {
+  :root {
+    --desktop-content-width: 1800px;
+    --desktop-reading-width: 1000px;
+  }
+}
