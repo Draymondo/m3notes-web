@@ -14,7 +14,9 @@ service cloud.firestore {
           && request.auth.uid == get(/databases/$(database)/documents/notes/$(noteId)).data.userId;
         allow create: if request.auth != null
           && request.auth.uid == get(/databases/$(database)/documents/notes/$(noteId)).data.userId;
-        allow update: if false;\n        allow delete: if request.auth != null\n          && request.auth.uid == get(/databases/$(database)/documents/notes/$(noteId)).data.userId;
+        allow update: if false;
+        allow delete: if request.auth != null
+          && request.auth.uid == get(/databases/$(database)/documents/notes/$(noteId)).data.userId;
       }
     }
 
