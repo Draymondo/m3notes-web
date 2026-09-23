@@ -130,14 +130,16 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
                     <Download size={17} />
                   </button>
                   {editable && (
-                    {file.webViewLink && (
-                      <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" title="Ouvrir">
-                        <ExternalLink size={17} />
-                      </a>
-                    )}
-                    <button type="button" onClick={() => onRemove(file)} title="Retirer de la note" disabled={disabled || !!downloadingId}>
-                      <Trash2 size={17} />
-                    </button>
+                    <>
+                      {file.webViewLink && (
+                        <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" title="Ouvrir">
+                          <ExternalLink size={17} />
+                        </a>
+                      )}
+                      <button type="button" onClick={() => onRemove(file)} title="Retirer de la note" disabled={disabled || !!downloadingId}>
+                        <Trash2 size={17} />
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
