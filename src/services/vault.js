@@ -202,13 +202,18 @@ export async function removeVaultAttachment(attachment) {
   await deleteDriveFile(attachment.driveFileId, accessToken)
 }
 
-export async function openVaultAttachment(attachment, key) {
+export async function openVaultAttachment(attachment, key, targetWindow) {
   const accessToken = await getDriveAccessToken()
   const encryptedBytes = await downloadDriveFile(attachment.driveFileId, accessToken)
   const decryptedBytes = await decryptBytes(key, encryptedBytes)
   const blob = new Blob([decryptedBytes], { type: attachment.mimeType || 'application/octet-stream' })
   const url = URL.createObjectURL(blob)
-  window.open(url, '_blank', 'noopener,noreferrer')
+  if (targetWindow && !targetWindow.closed) {
+    targetWindow.location.href = url
+  } else {
+    const opened = window.open(url, '_blank', 'noopener,noreferrer')
+    if (!opened) throw new Error('Impossible d’ouvrir le fichier dans une nouvelle fenêtre.')
+  }
   setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }
 
