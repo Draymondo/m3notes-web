@@ -239,9 +239,25 @@ export async function downloadVaultAttachment(attachment, key) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }
 
-export async function deleteVaultNote(noteId) {
-  const { db, deleteDoc, doc } = await getFirestoreCtx()
-  await deleteDoc(doc(db, NOTES, noteId))
+export async function deleteVaultNote(noteId, key) {
+  const { db, deleteDoc, doc, getDoc } = await getFirestoreCtx()
+  const noteRef = doc(db, NOTES, noteId)
+  const noteSnap = await getDoc(noteRef)
+  if (!noteSnap.exists()) return
+
+  const note = noteSnap.data()
+  const attachments = key ? await decryptAttachments(key, note.encAttachments) : []
+
+  if (attachments.length) {
+    const accessToken = await getDriveAccessToken()
+    for (const attachment of attachments) {
+      if (attachment?.driveFileId) {
+        await deleteDriveFile(attachment.driveFileId, accessToken)
+      }
+    }
+  }
+
+  await deleteDoc(noteRef)
 }
 
 export async function decryptVaultNote(key, note) {
