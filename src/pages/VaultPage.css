@@ -134,6 +134,14 @@
   color: var(--text-secondary);
 }
 
+.vault-note-date {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
 .vault-note-delete {
   background: none;
   border: none;
