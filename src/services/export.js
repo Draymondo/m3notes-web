@@ -67,17 +67,36 @@ export function exportJson(notes, filename = 'm3notes-sauvegarde') {
 }
 
 
-export function exportCompleteBackup(data, filename = 'm3notes-sauvegarde-complete') {
+export function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer)
+  const chunkSize = 0x8000
+  let binary = ''
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length)))
+  }
+  return btoa(binary)
+}
+
+export function exportCompleteBackup(data, driveFiles = [], filename = 'm3notes-sauvegarde-complete') {
   const payload = {
     app: 'M3Notes',
-    backupType: 'complete-firestore-data',
+    backupType: 'complete-data-and-drive',
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
     userData: serializeValue(data),
-    limitations: [
-      'Les fichiers binaires stockés sur Google Drive ne sont pas inclus dans ce fichier JSON.',
-      'Les références de pièces jointes sont conservées.'
-    ]
+    driveFiles: driveFiles.map(file => ({
+      id: file.id,
+      name: file.name || '',
+      mimeType: file.mimeType || 'application/octet-stream',
+      size: file.size ? Number(file.size) : null,
+      createdTime: file.createdTime || null,
+      modifiedTime: file.modifiedTime || null,
+      appProperties: file.appProperties || {},
+      contentBase64: file.contentBase64 || ''
+    })),
+    security: {
+      vaultAttachments: 'Les fichiers du coffre sont sauvegardés tels quels, donc toujours chiffrés côté client.'
+    }
   }
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' })
   downloadBlob(blob, `${safeFilename(filename)}.json`)
