@@ -37,19 +37,18 @@ export async function getDriveAccessToken() {
   }
 
   cachedAccessToken = credential.accessToken
-  // Google access tokens are short-lived; keep this only in memory and
-  // refresh a little before the expected expiry.
   cachedTokenExpiresAt = Date.now() + 50 * 60 * 1000
   return cachedAccessToken
 }
 
-export async function uploadDriveFile(file, accessToken, noteId) {
+export async function uploadDriveBlob(blob, accessToken, { name, mimeType, noteId } = {}) {
+  const contentType = mimeType || blob.type || 'application/octet-stream'
   const metadata = {
-    name: file.name,
-    mimeType: file.type || 'application/octet-stream',
+    name: name || `m3notes-${crypto.randomUUID()}.bin`,
+    mimeType: contentType,
     appProperties: {
       m3notes: 'attachment',
-      noteId
+      ...(noteId ? { noteId } : {})
     }
   }
 
@@ -58,8 +57,8 @@ export async function uploadDriveFile(file, accessToken, noteId) {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json; charset=UTF-8',
-      'X-Upload-Content-Type': file.type || 'application/octet-stream',
-      'X-Upload-Content-Length': String(file.size)
+      'X-Upload-Content-Type': contentType,
+      'X-Upload-Content-Length': String(blob.size)
     },
     body: JSON.stringify(metadata)
   })
@@ -71,14 +70,33 @@ export async function uploadDriveFile(file, accessToken, noteId) {
   const uploadResponse = await fetch(sessionUrl, {
     method: 'PUT',
     headers: {
-      'Content-Type': file.type || 'application/octet-stream'
+      'Content-Type': contentType
     },
-    body: file
+    body: blob
   })
 
   if (!uploadResponse.ok) throw await driveError(uploadResponse, 'Impossible d’envoyer le fichier sur Google Drive.')
 
   return uploadResponse.json()
+}
+
+export async function uploadDriveFile(file, accessToken, noteId) {
+  return uploadDriveBlob(file, accessToken, {
+    name: file.name,
+    mimeType: file.type || 'application/octet-stream',
+    noteId
+  })
+}
+
+export async function downloadDriveFile(fileId, accessToken) {
+  const response = await fetch(`${DRIVE_FILES_URL}/${encodeURIComponent(fileId)}?alt=media`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+
+  if (!response.ok) throw await driveError(response, 'Impossible de récupérer le fichier depuis Google Drive.')
+  return response.arrayBuffer()
 }
 
 export async function deleteDriveFile(fileId, accessToken) {
@@ -89,9 +107,6 @@ export async function deleteDriveFile(fileId, accessToken) {
     }
   })
 
-  // Si le fichier a déjà été supprimé de Google Drive, il n’y a plus rien
-  // à supprimer côté Drive. On peut donc retirer sa référence de la note.
   if (response.status === 404) return
-
   if (!response.ok) throw await driveError(response, 'Impossible de supprimer le fichier de Google Drive.')
 }
