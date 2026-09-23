@@ -241,6 +241,7 @@ export default function VaultPage() {
                   <X size={16} />
                 </button>
               </div>
+            </div>
             ))}
           </div>
         )}
