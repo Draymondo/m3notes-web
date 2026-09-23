@@ -39,3 +39,17 @@
 .markdown-renderer .md-checked { text-decoration: line-through; opacity: 0.55; }
 .markdown-renderer .md-checkbox { margin-right: 5px; }
 .markdown-renderer .md-spacer { height: 6px; }
+
+@media (min-width: 1800px) {
+  .note-card { min-height: 96px; }
+  .note-card .note-title { font-size: 1.05rem; }
+  .note-card .note-content,
+  .note-card .checklist { font-size: 0.95rem; }
+}
+
+@media (min-width: 3000px) {
+  .note-card { min-height: 110px; }
+  .note-card .note-title { font-size: 1.1rem; }
+  .note-card .note-content,
+  .note-card .checklist { font-size: 1rem; }
+}
