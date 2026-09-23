@@ -240,7 +240,7 @@ export async function duplicateNote(userId, note) {
 }
 
 export async function getCompleteBackupData(userId) {
-  const { db, collection, query, where, getDocs } = await getFirestoreCtx()
+  const { db, collection, query, where, getDocs, doc, getDoc } = await getFirestoreCtx()
   const notesSnap = await getDocs(query(collection(db, NOTES), where('userId', '==', userId)))
   const notes = []
   const histories = {}
@@ -256,8 +256,8 @@ export async function getCompleteBackupData(userId) {
     }))
   }
 
-  const vaultMetaSnap = await getDocs(query(collection(db, 'vaultMeta'), where('__name__', '==', userId)))
-  const vaultMeta = vaultMetaSnap.docs[0]?.data() || null
+  const vaultMetaSnap = await getDoc(doc(db, 'vaultMeta', userId))
+  const vaultMeta = vaultMetaSnap.exists() ? vaultMetaSnap.data() : null
 
   return { notes, histories, vaultMeta }
 }
