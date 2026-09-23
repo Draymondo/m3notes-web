@@ -128,7 +128,7 @@ export default function VaultPage() {
   const confirmDelete = async () => {
     if (!confirmDeleteNote) return
     try {
-      await deleteVaultNote(confirmDeleteNote.id)
+      await deleteVaultNote(confirmDeleteNote.id, vaultKey)
       setConfirmDeleteNote(null)
     } catch {
       setError('Impossible de supprimer cette note.')
