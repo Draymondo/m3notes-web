@@ -54,9 +54,7 @@ export function subscribeNotes(userId, mode, callback) {
     if (cancelled) return
     const q = query(
       collection(db, NOTES),
-      where('userId', '==', userId),
-      orderBy('isPinned', 'desc'),
-      orderBy('updatedAt', 'desc')
+      where('userId', '==', userId)
     )
     unsub = onSnapshot(q, (snap) => {
       let notes = snap.docs.map(d => ({ id: d.id, ...d.data() }))
@@ -69,6 +67,14 @@ export function subscribeNotes(userId, mode, callback) {
       } else {
         notes = notes.filter(n => !n.isArchived && !n.isDeleted && !n.isVault)
       }
+
+      // Sort client-side so legacy notes that predate updatedAt remain visible.
+      const toMillis = value => value?.toMillis?.() || 0
+      notes.sort((a, b) => {
+        const pinDiff = Number(!!b.isPinned) - Number(!!a.isPinned)
+        if (pinDiff !== 0) return pinDiff
+        return toMillis(b.updatedAt || b.createdAt) - toMillis(a.updatedAt || a.createdAt)
+      })
       callback(notes)
     }, (err) => {
       console.error('Notes subscription error:', err)
