@@ -174,3 +174,28 @@
 .vault-note-pin {
   color: var(--primary);
 }
+
+@media (min-width: 900px) {
+  .vault-toolbar { padding: 14px 28px; }
+  .vault-notes-area { width: min(1100px, calc(100% - 48px)); margin: 0 auto; padding-top: 24px; }
+  .vault-notes-list { gap: 12px; }
+  .vault-note-item { padding: 16px 18px; }
+  .vault-note-text h3 { font-size: 1.05rem; }
+  .vault-note-text p { font-size: 0.9rem; }
+}
+
+@media (min-width: 1800px) {
+  .vault-toolbar { padding-left: 48px; padding-right: 48px; }
+  .vault-notes-area { width: min(1300px, calc(100% - 96px)); padding-top: 32px; }
+  .vault-note-item { padding: 18px 22px; }
+  .vault-note-text h3 { font-size: 1.1rem; }
+  .vault-note-text p { font-size: 0.95rem; }
+}
+
+@media (min-width: 3000px) {
+  .vault-toolbar { padding: 16px 64px; }
+  .vault-notes-area { width: min(1500px, calc(100% - 128px)); }
+  .vault-note-item { padding: 20px 24px; border-radius: 14px; }
+  .vault-note-text h3 { font-size: 1.15rem; }
+  .vault-note-text p { font-size: 1rem; }
+}
