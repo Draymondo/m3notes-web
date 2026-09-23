@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { FileText, Image, Paperclip, Trash2 } from 'lucide-react'
+import { getDriveAccessToken } from '../services/drive'
 import {
   openVaultAttachment,
   removeVaultAttachment,
@@ -20,8 +21,26 @@ function fileIcon(mimeType) {
 
 export default function VaultAttachments({ attachments, vaultKey, noteId, onChange, disabled }) {
   const [busy, setBusy] = useState(false)
+  const [authorizing, setAuthorizing] = useState(false)
+  const [driveToken, setDriveToken] = useState(null)
   const [openingId, setOpeningId] = useState('')
   const [error, setError] = useState('')
+
+  const chooseFiles = async () => {
+    if (!vaultKey || !noteId || busy || authorizing) return
+    setError('')
+    setAuthorizing(true)
+    try {
+      const token = await getDriveAccessToken()
+      setDriveToken(token)
+      document.getElementById(`vault-file-input-${noteId}`)?.click()
+    } catch (err) {
+      console.error('Vault Drive authorization error:', err)
+      setError(err.message || 'Autorisation Google Drive impossible.')
+    } finally {
+      setAuthorizing(false)
+    }
+  }
 
   const addFiles = async files => {
     if (!files.length || !vaultKey || !noteId || busy) return
@@ -30,7 +49,7 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
     const added = []
     try {
       for (const file of files) {
-        added.push(await uploadVaultAttachment(file, vaultKey, noteId))
+        added.push(await uploadVaultAttachment(file, vaultKey, noteId, driveToken))
       }
       const next = [...attachments, ...added]
       await updateVaultAttachments(noteId, vaultKey, next)
@@ -97,21 +116,28 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
           {attachments.length > 0 && <span className="vault-attachments-count">{attachments.length}</span>}
         </div>
 
-        <label className="vault-attachments-add">
-          {busy ? '…' : '+ Ajouter'}
-          <input
-            type="file"
-            multiple
-            accept="image/*,.pdf,.txt,.md,text/plain,text/markdown,application/pdf"
-            hidden
-            disabled={busy || disabled}
-            onChange={e => {
-              const files = Array.from(e.target.files || [])
-              if (files.length) addFiles(files)
-              e.target.value = ''
-            }}
-          />
-        </label>
+        <button
+          type="button"
+          className="vault-attachments-add"
+          onClick={chooseFiles}
+          disabled={busy || disabled || authorizing}
+          aria-busy={authorizing}
+        >
+          {authorizing ? 'Connexion…' : busy ? '…' : '+ Ajouter'}
+        </button>
+        <input
+          id={`vault-file-input-${noteId}`}
+          type="file"
+          multiple
+          accept="image/*,.pdf,.txt,.md,text/plain,text/markdown,application/pdf"
+          hidden
+          disabled={busy || disabled}
+          onChange={e => {
+            const files = Array.from(e.target.files || [])
+            if (files.length) addFiles(files)
+            e.target.value = ''
+          }}
+        />
       </div>
 
       {attachments.length > 0 && (
