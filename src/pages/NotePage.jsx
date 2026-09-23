@@ -7,6 +7,7 @@ import LabelEditor from '../components/LabelEditor'
 import ConfirmDialog from '../components/ConfirmDialog'
 import MarkdownRenderer from '../components/MarkdownRenderer'
 import NoteAttachments from '../components/NoteAttachments'
+import { formatNoteDate } from '../utils/noteDate'
 import './NotePage.css'
 
 function formatHistoryDate(timestamp) {
@@ -42,6 +43,7 @@ export default function NotePage() {
 
       {!previewOpen && <ColorPicker color={note.color} onChange={note.setColor} />}
       <input className="note-title-input" placeholder="Titre" value={note.title} onChange={e => note.setTitle(e.target.value)} autoFocus={note.isNew} readOnly={previewOpen} />
+      {!note.isNew && note.updatedAt && <time className="note-date-detail" dateTime={note.updatedAt?.toDate ? note.updatedAt.toDate().toISOString() : undefined}>{formatNoteDate(note.updatedAt)}</time>}
       {!previewOpen && <LabelEditor labels={note.labels} open={labelInputOpen} onAdd={note.addLabel} onRemove={note.removeLabel} />}
       {note.saveError && <p className="note-error" role="alert">{note.saveError}</p>}
       {note.shareError && <p className="note-error" role="alert">{note.shareError}</p>}
