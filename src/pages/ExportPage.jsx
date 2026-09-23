@@ -3,7 +3,8 @@ import { ArrowLeft, Download, FileJson, FileText, FileType, Upload } from 'lucid
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { subscribeNotes, createNote, getCompleteBackupData } from '../services/notes'
-import { exportJson, exportCompleteBackup, exportMarkdown, exportText, exportPdf, parseBackupFile } from '../services/export'
+import { getDriveAccessToken, listDriveAttachmentFiles, downloadDriveFile } from '../services/drive'
+import { arrayBufferToBase64, exportJson, exportCompleteBackup, exportMarkdown, exportText, exportPdf, parseBackupFile } from '../services/export'
 import './ExportPage.css'
 
 export default function ExportPage() {
@@ -34,9 +35,19 @@ export default function ExportPage() {
     if (!user || backupBusy) return
     setBackupBusy(true)
     try {
+      setMessage('Préparation de la sauvegarde…')
       const data = await getCompleteBackupData(user.uid)
-      exportCompleteBackup(data)
-      setMessage('Sauvegarde complète des données générée.')
+      const accessToken = await getDriveAccessToken()
+      const driveFiles = await listDriveAttachmentFiles(accessToken)
+      const backupFiles = []
+      for (let index = 0; index < driveFiles.length; index += 1) {
+        const file = driveFiles[index]
+        setMessage('Sauvegarde des pièces jointes… ' + (index + 1) + '/' + driveFiles.length)
+        const bytes = await downloadDriveFile(file.id, accessToken)
+        backupFiles.push({ ...file, contentBase64: arrayBufferToBase64(bytes) })
+      }
+      exportCompleteBackup(data, backupFiles)
+      setMessage('Sauvegarde complète générée' + (driveFiles.length ? ' avec ' + driveFiles.length + ' fichier' + (driveFiles.length > 1 ? 's' : '') + '.' : '.'))
     } catch (err) {
       console.error('Complete backup error:', err)
       setError('Impossible de générer la sauvegarde complète.')
@@ -82,7 +93,7 @@ export default function ExportPage() {
             <button onClick={() => runExport(exportPdf)}><FileType size={19} /> PDF / imprimer</button>
           </div>
           <button onClick={handleCompleteBackup} disabled={backupBusy}><Download size={19} /> {backupBusy ? 'Préparation…' : 'Sauvegarde complète des données'}</button>
-          <p className="export-note">Inclut les notes, la corbeille, les archives, l’historique et les données chiffrées du coffre. Les fichiers stockés sur Google Drive ne sont pas copiés dans ce JSON.</p>
+          <p className="export-note">Inclut les données Firestore et les fichiers M3Notes stockés sur Google Drive. Les pièces jointes du coffre restent chiffrées dans la sauvegarde.</p>
         </section>
         <section className="export-card">
           <h2>Restaurer une sauvegarde</h2>
