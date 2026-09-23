@@ -129,7 +129,6 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
           id={`vault-file-input-${noteId}`}
           type="file"
           multiple
-          accept="image/*,.pdf,.txt,.md,text/plain,text/markdown,application/pdf"
           hidden
           disabled={busy || disabled}
           onChange={e => {
