@@ -179,8 +179,28 @@ export async function restoreNote(noteId) {
 }
 
 export async function permanentlyDeleteNote(noteId) {
-  const { db, deleteDoc, doc } = await getFirestoreCtx()
-  await deleteDoc(doc(db, NOTES, noteId))
+  const { db, deleteDoc, doc, collection, getDoc, getDocs } = await getFirestoreCtx()
+  const noteRef = doc(db, NOTES, noteId)
+  const noteSnap = await getDoc(noteRef)
+  if (!noteSnap.exists()) return
+
+  const note = noteSnap.data()
+  const historySnap = await getDocs(collection(db, NOTES, noteId, HISTORY))
+  for (const version of historySnap.docs) {
+    await deleteDoc(version.ref)
+  }
+
+  const attachments = Array.isArray(note.attachments) ? note.attachments : []
+  if (attachments.length) {
+    const accessToken = await getDriveAccessToken()
+    for (const attachment of attachments) {
+      if (attachment?.driveFileId) {
+        await deleteDriveFile(attachment.driveFileId, accessToken)
+      }
+    }
+  }
+
+  await deleteDoc(noteRef)
 }
 
 export function isTrashExpired(note) {
