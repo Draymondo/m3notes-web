@@ -9,6 +9,7 @@
 .color-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
 .color-dot:hover { transform: scale(1.1); } .color-dot.selected { border-color: var(--text); box-shadow: 0 0 0 1px var(--surface); }
 .note-title-input { background: transparent; border: none; outline: none; font-size: 1.4rem; font-weight: 500; padding: 0 20px 8px; color: inherit; width: 100%; }
+.note-date-detail { display: block; padding: 0 20px 8px; font-family: 'Google Sans', 'Segoe UI', Roboto, -apple-system, sans-serif; font-size: 0.76rem; color: currentColor; opacity: 0.58; }
 .note-title-input::placeholder { color: rgba(0,0,0,0.4); }
 .note-content-input { background: transparent; border: none; outline: none; font-size: 1rem; line-height: 1.5; padding: 0 20px 40px; color: inherit; width: 100%; resize: none; flex: 1; min-height: 200px; }
 .note-content-input::placeholder { color: rgba(0,0,0,0.35); }
