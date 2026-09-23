@@ -238,3 +238,26 @@ export async function duplicateNote(userId, note) {
     deletedAt: null
   })
 }
+
+export async function getCompleteBackupData(userId) {
+  const { db, collection, query, where, getDocs } = await getFirestoreCtx()
+  const notesSnap = await getDocs(query(collection(db, NOTES), where('userId', '==', userId)))
+  const notes = []
+  const histories = {}
+
+  for (const noteDoc of notesSnap.docs) {
+    const data = noteDoc.data()
+    notes.push({ id: noteDoc.id, ...data })
+
+    const historySnap = await getDocs(collection(db, NOTES, noteDoc.id, HISTORY))
+    histories[noteDoc.id] = historySnap.docs.map(version => ({
+      id: version.id,
+      ...version.data()
+    }))
+  }
+
+  const vaultMetaSnap = await getDocs(query(collection(db, 'vaultMeta'), where('__name__', '==', userId)))
+  const vaultMeta = vaultMetaSnap.docs[0]?.data() || null
+
+  return { notes, histories, vaultMeta }
+}
