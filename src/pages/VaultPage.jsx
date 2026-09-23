@@ -212,7 +212,7 @@ export default function VaultPage() {
                 <div className="vault-note-text">
                   <h3>{note.title || '(sans titre)'}</h3>
                   <p>{(note.content || '').slice(0, 80)}</p>
-                  {note.updatedAt && <time className="vault-note-date" dateTime={note.updatedAt?.toDate ? note.updatedAt.toDate().toISOString() : undefined}>{formatNoteDate(note.updatedAt)}</time>}
+                  {(note.updatedAt || note.createdAt) && <time className="vault-note-date" dateTime={(note.updatedAt || note.createdAt)?.toDate ? (note.updatedAt || note.createdAt).toDate().toISOString() : undefined}>{formatNoteDate(note.updatedAt || note.createdAt, { prefix: note.updatedAt ? 'Modifiée' : 'Créée' })}</time>}
                 </div>
                 <button
                   className="vault-note-delete"
