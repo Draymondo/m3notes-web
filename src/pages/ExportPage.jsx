@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Download, FileJson, FileText, FileType, Upload } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { subscribeNotes, createNote } from '../services/notes'
-import { exportJson, exportMarkdown, exportText, exportPdf, parseBackupFile } from '../services/export'
+import { subscribeNotes, createNote, getCompleteBackupData } from '../services/notes'
+import { exportJson, exportCompleteBackup, exportMarkdown, exportText, exportPdf, parseBackupFile } from '../services/export'
 import './ExportPage.css'
 
 export default function ExportPage() {
@@ -14,6 +14,7 @@ export default function ExportPage() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [backupBusy, setBackupBusy] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -25,6 +26,23 @@ export default function ExportPage() {
     if (!notes.length) return setError('Aucune note à exporter.')
     try { fn(notes); setMessage(`${notes.length} note${notes.length > 1 ? 's' : ''} exportée${notes.length > 1 ? 's' : ''}.`) }
     catch (err) { console.error(err); setError('Impossible de générer l’export.') }
+  }
+
+  const handleCompleteBackup = async () => {
+    setError('')
+    setMessage('')
+    if (!user || backupBusy) return
+    setBackupBusy(true)
+    try {
+      const data = await getCompleteBackupData(user.uid)
+      exportCompleteBackup(data)
+      setMessage('Sauvegarde complète des données générée.')
+    } catch (err) {
+      console.error('Complete backup error:', err)
+      setError('Impossible de générer la sauvegarde complète.')
+    } finally {
+      setBackupBusy(false)
+    }
   }
 
   const handleImport = async event => {
@@ -58,11 +76,13 @@ export default function ExportPage() {
           <h2>Exporter</h2>
           <p>{notes.length} note{notes.length > 1 ? 's' : ''} disponible{notes.length > 1 ? 's' : ''}</p>
           <div className="export-actions">
-            <button onClick={() => runExport(exportJson)}><FileJson size={19} /> JSON — sauvegarde</button>
+            <button onClick={() => runExport(exportJson)}><FileJson size={19} /> JSON — notes actives</button>
             <button onClick={() => runExport(exportMarkdown)}><FileText size={19} /> Markdown</button>
             <button onClick={() => runExport(exportText)}><FileText size={19} /> Texte</button>
             <button onClick={() => runExport(exportPdf)}><FileType size={19} /> PDF / imprimer</button>
           </div>
+          <button onClick={handleCompleteBackup} disabled={backupBusy}><Download size={19} /> {backupBusy ? 'Préparation…' : 'Sauvegarde complète des données'}</button>
+          <p className="export-note">Inclut les notes, la corbeille, les archives, l’historique et les données chiffrées du coffre. Les fichiers stockés sur Google Drive ne sont pas copiés dans ce JSON.</p>
         </section>
         <section className="export-card">
           <h2>Restaurer une sauvegarde</h2>
