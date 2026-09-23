@@ -180,11 +180,11 @@ export async function updateVaultAttachments(noteId, key, attachments) {
   return patchVaultNote(noteId, { encAttachments })
 }
 
-export async function uploadVaultAttachment(file, key, noteId) {
-  const accessToken = await getDriveAccessToken()
+export async function uploadVaultAttachment(file, key, noteId, accessToken) {
+  const token = accessToken || await getDriveAccessToken()
   const encryptedBytes = await encryptBytes(key, await file.arrayBuffer())
   const blob = new Blob([encryptedBytes], { type: 'application/octet-stream' })
-  const driveFile = await uploadDriveBlob(blob, accessToken, {
+  const driveFile = await uploadDriveBlob(blob, token, {
     name: `m3notes-vault-${crypto.randomUUID()}.bin`,
     mimeType: 'application/octet-stream'
   })
