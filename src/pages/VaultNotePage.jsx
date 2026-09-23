@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useVault } from '../context/VaultContext'
 import { getFirestoreCtx } from '../firebase'
 import { createVaultNote, updateVaultNote, decryptVaultNote } from '../services/vault'
+import VaultAttachments from '../components/VaultAttachments'
 import './VaultNotePage.css'
 
 export default function VaultNotePage() {
@@ -18,6 +19,7 @@ export default function VaultNotePage() {
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [attachments, setAttachments] = useState([])
   const [loading, setLoading] = useState(!isNew)
   const [loadError, setLoadError] = useState('')
   const [saveError, setSaveError] = useState('')
@@ -34,6 +36,7 @@ export default function VaultNotePage() {
       // immédiat, sans aller-retour réseau ni re-déchiffrement.
       setTitle(passedNote.title || '')
       setContent(passedNote.content || '')
+      setAttachments(passedNote.attachments || [])
       setLoadError('')
       setLoading(false)
       return
@@ -52,6 +55,7 @@ export default function VaultNotePage() {
         if (!cancelled) {
           setTitle(decoded.title)
           setContent(decoded.content)
+          setAttachments(decoded.attachments || [])
         }
       } catch {
         if (!cancelled) setLoadError('Impossible de déchiffrer cette note.')
@@ -76,9 +80,9 @@ export default function VaultNotePage() {
           navigate('/vault')
           return
         }
-        await createVaultNote(user.uid, vaultKey, { title: t, content: c })
+        await createVaultNote(user.uid, vaultKey, { title: t, content: c, attachments })
       } else {
-        await updateVaultNote(id, vaultKey, { title: t, content: c })
+        await updateVaultNote(id, vaultKey, { title: t, content: c, attachments })
       }
       navigate('/vault')
     } catch {
@@ -124,6 +128,19 @@ export default function VaultNotePage() {
         rows={14}
       />
       {saveError && <p className="vault-error" role="alert">{saveError}</p>}
+
+      {!isNew && (
+        <VaultAttachments
+          attachments={attachments}
+          vaultKey={vaultKey}
+          noteId={id}
+          onChange={setAttachments}
+          disabled={loading}
+        />
+      )}
+      {isNew && (
+        <p className="vault-attachment-hint">Enregistre d’abord la note pour pouvoir y ajouter un fichier.</p>
+      )}
     </div>
   )
 }
