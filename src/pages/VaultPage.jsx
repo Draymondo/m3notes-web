@@ -51,8 +51,8 @@ export default function VaultPage() {
     let cancelled = false
     Promise.all(rawNotes.map(async n => {
       try {
-        const { title, content } = await decryptVaultNote(vaultKey, n)
-        return { ...n, title, content }
+        const { title, content, attachments } = await decryptVaultNote(vaultKey, n)
+        return { ...n, title, content, attachments }
       } catch {
         return { ...n, title: '(erreur de dechiffrement)', content: '' }
       }
