@@ -164,8 +164,6 @@ export async function createVaultNote(userId, key, { title, content, attachments
     encAttachments,
     createdAt: serverTimestamp(),
     updatedAt: Timestamp.now()
-  }).catch((err) => {
-    console.error('Vault note sync error:', err)
   })
   return ref.id
 }
