@@ -7,6 +7,7 @@ import { getFirestoreCtx } from '../firebase'
 import { createVaultNote, updateVaultNote, decryptVaultNote } from '../services/vault'
 import VaultAttachments from '../components/VaultAttachments'
 import './VaultNotePage.css'
+import { formatNoteDate } from '../utils/noteDate'
 
 export default function VaultNotePage() {
   const { id } = useParams()
@@ -20,6 +21,7 @@ export default function VaultNotePage() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [attachments, setAttachments] = useState([])
+  const [updatedAt, setUpdatedAt] = useState(null)
   const [loading, setLoading] = useState(!isNew)
   const [loadError, setLoadError] = useState('')
   const [saveError, setSaveError] = useState('')
@@ -37,6 +39,7 @@ export default function VaultNotePage() {
       setTitle(passedNote.title || '')
       setContent(passedNote.content || '')
       setAttachments(passedNote.attachments || [])
+      setUpdatedAt(passedNote.updatedAt || null)
       setLoadError('')
       setLoading(false)
       return
@@ -56,6 +59,7 @@ export default function VaultNotePage() {
           setTitle(decoded.title)
           setContent(decoded.content)
           setAttachments(decoded.attachments || [])
+          setUpdatedAt(snap.data().updatedAt || null)
         }
       } catch {
         if (!cancelled) setLoadError('Impossible de déchiffrer cette note.')
@@ -120,6 +124,7 @@ export default function VaultNotePage() {
         onChange={e => setTitle(e.target.value)}
         autoFocus={isNew}
       />
+      {!isNew && updatedAt && <time className="vault-note-date-detail" dateTime={updatedAt?.toDate ? updatedAt.toDate().toISOString() : undefined}>{formatNoteDate(updatedAt)}</time>}
       <textarea
         className="vault-content-input"
         placeholder="Note confidentielle"
