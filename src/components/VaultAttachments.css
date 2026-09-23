@@ -117,6 +117,7 @@
   font-size: 0.8rem;
 }
 
+.vault-attachment-download,
 .vault-attachment-delete {
   display: inline-flex;
   align-items: center;
@@ -128,6 +129,7 @@
   color: inherit;
 }
 
+.vault-attachment-download:hover:not(:disabled),
 .vault-attachment-delete:hover:not(:disabled) {
   background: rgba(127,127,127,0.12);
 }
