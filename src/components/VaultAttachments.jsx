@@ -27,8 +27,8 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
     if (!files.length || !vaultKey || !noteId || busy) return
     setError('')
     setBusy(true)
+    const added = []
     try {
-      const added = []
       for (const file of files) {
         added.push(await uploadVaultAttachment(file, vaultKey, noteId))
       }
@@ -36,6 +36,13 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
       await updateVaultAttachments(noteId, vaultKey, next)
       onChange(next)
     } catch (err) {
+      await Promise.all(added.map(async attachment => {
+        try {
+          await removeVaultAttachment(attachment)
+        } catch (cleanupError) {
+          console.error('Vault attachment cleanup error:', cleanupError)
+        }
+      }))
       console.error('Vault attachment upload error:', err)
       setError(err.message || 'Impossible d’ajouter le fichier au coffre.')
     } finally {
