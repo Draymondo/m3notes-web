@@ -202,11 +202,15 @@ export async function removeVaultAttachment(attachment) {
   await deleteDriveFile(attachment.driveFileId, accessToken)
 }
 
-export async function openVaultAttachment(attachment, key, targetWindow) {
+async function getVaultAttachmentBlob(attachment, key) {
   const accessToken = await getDriveAccessToken()
   const encryptedBytes = await downloadDriveFile(attachment.driveFileId, accessToken)
   const decryptedBytes = await decryptBytes(key, encryptedBytes)
-  const blob = new Blob([decryptedBytes], { type: attachment.mimeType || 'application/octet-stream' })
+  return new Blob([decryptedBytes], { type: attachment.mimeType || 'application/octet-stream' })
+}
+
+export async function openVaultAttachment(attachment, key, targetWindow) {
+  const blob = await getVaultAttachmentBlob(attachment, key)
   const url = URL.createObjectURL(blob)
   if (targetWindow && !targetWindow.closed) {
     targetWindow.location.href = url
@@ -214,6 +218,18 @@ export async function openVaultAttachment(attachment, key, targetWindow) {
     const opened = window.open(url, '_blank', 'noopener,noreferrer')
     if (!opened) throw new Error('Impossible d’ouvrir le fichier dans une nouvelle fenêtre.')
   }
+  setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
+
+export async function downloadVaultAttachment(attachment, key) {
+  const blob = await getVaultAttachmentBlob(attachment, key)
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = attachment.name || 'm3notes-fichier'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
   setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }
 
