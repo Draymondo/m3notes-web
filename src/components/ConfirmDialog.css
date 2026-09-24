@@ -58,3 +58,26 @@
 [data-theme="dark"] .confirm-ok.danger {
   color: #f28b82;
 }
+
+
+.confirm-overlay {
+  animation: confirm-overlay-in 160ms var(--ease-out) both;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.confirm-box {
+  animation: confirm-box-in 220ms var(--ease-out) both;
+  transform-origin: center;
+}
+.confirm-actions button {
+  transition: transform var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out), opacity var(--motion-fast) var(--ease-out);
+}
+.confirm-actions button:hover { transform: translateY(-1px); }
+.confirm-actions button:active { transform: scale(.96); }
+.confirm-ok.danger:hover { background: color-mix(in srgb, #d93025 10%, var(--surface)); }
+@keyframes confirm-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes confirm-box-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .confirm-overlay, .confirm-box { animation: none; }
+  .confirm-actions button { transition: none; }
+}
