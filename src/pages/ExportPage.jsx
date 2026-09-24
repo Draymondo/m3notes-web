@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, Download, FileJson, FileText, FileType, Upload } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { subscribeNotes, createNote, getCompleteBackupData } from '../services/notes'
+import { useVault } from '../context/VaultContext'
+import { subscribeNotes, createNote, getCompleteBackupData, restoreCompleteBackupData } from '../services/notes'
 import { getDriveAccessToken, listDriveAttachmentFiles, downloadDriveFile } from '../services/drive'
 import { arrayBufferToBase64, exportJson, exportCompleteBackup, exportMarkdown, exportText, exportPdf, parseBackupFile } from '../services/export'
 import './ExportPage.css'
 
 export default function ExportPage() {
   const { user } = useAuth()
+  const { vaultKey } = useVault()
   const navigate = useNavigate()
   const inputRef = useRef(null)
   const [notes, setNotes] = useState([])
@@ -62,7 +64,18 @@ export default function ExportPage() {
     if (!file) return
     setError(''); setMessage('')
     try {
-      const imported = await parseBackupFile(file)
+      const payload = await parseBackupFile(file)
+
+      if (payload.backupType === 'complete-data-and-drive') {
+        if (!user) throw new Error('Utilisateur non connecté.')
+        setBackupBusy(true)
+        setMessage('Restauration de la sauvegarde complète…')
+        const result = await restoreCompleteBackupData(user.uid, payload, { vaultKey })
+        setMessage(`Restauration terminée : ${result.notes} note${result.notes > 1 ? 's' : ''}, ${result.histories} version${result.histories > 1 ? 's' : ''} historique${result.histories > 1 ? 's' : ''} et ${result.driveFiles} fichier${result.driveFiles > 1 ? 's' : ''} restauré${result.driveFiles > 1 ? 's' : ''}.`)
+        return
+      }
+
+      const imported = Array.isArray(payload.notes) ? payload.notes : []
       if (!imported.length) throw new Error('La sauvegarde ne contient aucune note.')
       for (const note of imported) {
         await createNote(user.uid, {
@@ -72,7 +85,12 @@ export default function ExportPage() {
         })
       }
       setMessage(`${imported.length} note${imported.length > 1 ? 's' : ''} importée${imported.length > 1 ? 's' : ''}.`)
-    } catch (err) { console.error(err); setError(err.message || 'Impossible d’importer la sauvegarde.') }
+    } catch (err) {
+      console.error(err)
+      setError(err.message || 'Impossible d’importer la sauvegarde.')
+    } finally {
+      setBackupBusy(false)
+    }
   }
 
   return <div className="export-page">
@@ -97,7 +115,7 @@ export default function ExportPage() {
         </section>
         <section className="export-card">
           <h2>Restaurer une sauvegarde</h2>
-          <p>Importez uniquement un fichier JSON créé par M3Notes. Les notes seront ajoutées à vos notes existantes.</p>
+          <p>Importez un fichier JSON créé par M3Notes. Une sauvegarde complète restaure les notes, historiques, coffre et pièces jointes sans écraser vos notes existantes.</p>
           <input ref={inputRef} type="file" accept="application/json,.json" hidden onChange={handleImport} />
           <button className="import-button" onClick={() => inputRef.current?.click()}><Upload size={19} /> Importer une sauvegarde JSON</button>
         </section>
