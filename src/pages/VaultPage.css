@@ -199,3 +199,72 @@
   .vault-note-text h3 { font-size: 1.15rem; }
   .vault-note-text p { font-size: 1rem; }
 }
+
+
+/* Premium vault layer: private, calm and tactile rather than theatrical. */
+.vault-page { animation: vault-page-in 220ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both; }
+
+.vault-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(16px) saturate(1.06);
+  -webkit-backdrop-filter: blur(16px) saturate(1.06);
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.vault-toolbar h1 { letter-spacing: -0.02em; }
+
+.vault-toolbar .icon-btn,
+.vault-note-pin,
+.vault-note-delete,
+.vault-btn,
+.vault-note-item,
+.fab {
+  transition: transform var(--motion-fast, 140ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)), background-color var(--motion-fast, 140ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)), box-shadow var(--motion-normal, 200ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)), color var(--motion-fast, 140ms) ease;
+}
+
+.vault-toolbar .icon-btn:active { transform: scale(0.9); }
+
+.vault-lock-screen { animation: vault-fade-up 280ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both; }
+.vault-lock-screen svg { opacity: 0.9; }
+
+.vault-lock-screen input {
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+.vault-lock-screen input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.vault-btn { cursor: pointer; box-shadow: 0 5px 16px color-mix(in srgb, var(--primary) 18%, transparent); }
+.vault-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 24%, transparent); }
+.vault-btn:active:not(:disabled) { transform: scale(0.98); }
+
+.vault-note-item { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.vault-note-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); border-color: color-mix(in srgb, var(--primary) 24%, var(--border)); }
+.vault-note-item:active { transform: scale(0.995); }
+
+.vault-note-item:nth-child(1) { animation: vault-fade-up 220ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 20ms both; }
+.vault-note-item:nth-child(2) { animation: vault-fade-up 220ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 45ms both; }
+.vault-note-item:nth-child(3) { animation: vault-fade-up 220ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 70ms both; }
+.vault-note-item:nth-child(n+4) { animation: vault-fade-up 220ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 95ms both; }
+
+.vault-note-pin:hover,
+.vault-note-delete:hover { transform: scale(1.08); }
+.vault-note-pin:active,
+.vault-note-delete:active { transform: scale(0.88); }
+
+.vault-transfer-status { animation: vault-fade-up 200ms ease-out both; }
+
+@keyframes vault-page-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes vault-fade-up { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+
+[data-theme="dark"] .vault-toolbar { background: color-mix(in srgb, var(--surface) 84%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .vault-page, .vault-lock-screen, .vault-note-item, .vault-transfer-status { animation: none !important; }
+}
