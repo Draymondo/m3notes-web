@@ -74,3 +74,46 @@
   .note-preview,
   .note-page .markdown-renderer.note-preview { font-size: 1.18rem; }
 }
+
+
+/* Premium editor polish: the writing surface remains visually quiet while controls feel tactile. */
+.note-page { transition: background var(--motion-normal) var(--ease-out), color var(--motion-normal) var(--ease-out); }
+
+.note-toolbar {
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  background: color-mix(in srgb, currentColor 0%, transparent);
+}
+
+.icon-btn {
+  transition: transform var(--motion-fast) var(--ease-out), opacity var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out);
+}
+
+.icon-btn:hover { transform: translateY(-1px); }
+.icon-btn:active { transform: scale(0.90); }
+
+.color-dot:active { transform: scale(0.94); }
+
+.note-title-input,
+.note-content-input,
+.note-preview {
+  transition: opacity var(--motion-normal) var(--ease-out);
+}
+
+.note-title-input:focus,
+.note-content-input:focus { opacity: 1; }
+
+.history-overlay { animation: m3-overlay-in 180ms ease-out both; }
+.history-panel { animation: m3-panel-in 260ms var(--ease-out) both; }
+
+@keyframes m3-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m3-panel-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
+
+.history-item,
+.history-restore-btn {
+  transition: transform var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out);
+}
+
+.history-item:hover { border-color: color-mix(in srgb, var(--primary) 30%, var(--border)); }
+.history-restore-btn:hover { transform: translateY(-1px); }
+.history-restore-btn:active { transform: scale(0.97); }
