@@ -205,6 +205,22 @@ export async function permanentlyDeleteNote(noteId) {
   await deleteDoc(noteRef)
 }
 
+function deserializeBackupValue(value) {
+  if (Array.isArray(value)) return value.map(deserializeBackupValue)
+  if (value && typeof value === 'object') {
+    if (value.__type === 'timestamp' && Number.isFinite(Number(value.value))) return new Date(Number(value.value))
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, deserializeBackupValue(item)]))
+  }
+  return value
+}
+
+function backupMillis(value) {
+  const restored = deserializeBackupValue(value)
+  if (restored instanceof Date) return restored.getTime()
+  if (typeof restored === 'number' && Number.isFinite(restored)) return restored
+  return null
+}
+
 function base64ToArrayBuffer(base64) {
   const binary = atob(base64 || '')
   const bytes = new Uint8Array(binary.length)
@@ -225,7 +241,7 @@ export async function restoreCompleteBackupData(userId, payload, { vaultKey = nu
     throw new Error('Cette sauvegarde complète M3Notes est invalide.')
   }
 
-  const data = payload.userData
+  const data = deserializeBackupValue(payload.userData)
   const sourceNotes = Array.isArray(data.notes) ? data.notes : []
   const sourceHistories = data.histories && typeof data.histories === 'object' ? data.histories : {}
   const sourceDriveFiles = Array.isArray(payload.driveFiles) ? payload.driveFiles : []
@@ -269,9 +285,12 @@ export async function restoreCompleteBackupData(userId, payload, { vaultKey = nu
       restored.encAttachments = await remapVaultAttachments(vaultKey, restored.encAttachments, driveIdMap)
     }
 
-    restored.createdAt = source.createdAt ? Timestamp.fromMillis(Number(source.createdAt)) : Timestamp.now()
-    restored.updatedAt = source.updatedAt ? Timestamp.fromMillis(Number(source.updatedAt)) : Timestamp.now()
-    if (source.deletedAt) restored.deletedAt = Timestamp.fromMillis(Number(source.deletedAt))
+    const createdAt = backupMillis(source.createdAt)
+    const updatedAt = backupMillis(source.updatedAt)
+    const deletedAt = backupMillis(source.deletedAt)
+    restored.createdAt = createdAt != null ? Timestamp.fromMillis(createdAt) : Timestamp.now()
+    restored.updatedAt = updatedAt != null ? Timestamp.fromMillis(updatedAt) : Timestamp.now()
+    if (deletedAt != null) restored.deletedAt = Timestamp.fromMillis(deletedAt)
     else if ('deletedAt' in restored) restored.deletedAt = null
 
     await setDoc(ref, restored)
@@ -286,7 +305,8 @@ export async function restoreCompleteBackupData(userId, payload, { vaultKey = nu
       const restored = { ...version }
       delete restored.id
       delete restored.savedAt
-      restored.savedAt = version.savedAt ? Timestamp.fromMillis(Number(version.savedAt)) : Timestamp.now()
+      const savedAt = backupMillis(version.savedAt)
+      restored.savedAt = savedAt != null ? Timestamp.fromMillis(savedAt) : Timestamp.now()
       await setDoc(ref, restored)
     }
   }
