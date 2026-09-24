@@ -1,11 +1,11 @@
 :root {
-  --bg: #f8f9fa;
-  --surface: #ffffff;
-  --text: #202124;
-  --text-secondary: #5f6368;
-  --primary: #1a73e8;
-  --border: #e0e0e0;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --bg: #f3f1ed;
+  --surface: #faf9f6;
+  --text: #252525;
+  --text-secondary: #66635f;
+  --primary: #4f6f9f;
+  --border: #dedbd5;
+  --shadow: 0 1px 3px rgba(45,40,32,0.07), 0 6px 18px rgba(45,40,32,0.045);
   --radius: 12px;
   --fab-size: 56px;
   --reading-font: Georgia, 'Times New Roman', serif;
@@ -123,18 +123,18 @@ input, textarea {
 }
 
 /* Note colors */
-.note-default { background: #ffffff; }
-.note-red { background: #f28b82; }
-.note-orange { background: #fbbc04; }
-.note-yellow { background: #fff475; }
-.note-green { background: #ccff90; }
-.note-teal { background: #a7ffeb; }
-.note-blue { background: #cbf0f8; }
-.note-darkblue { background: #aecbfa; }
-.note-purple { background: #d7aefb; }
-.note-pink { background: #fdcfe8; }
-.note-brown { background: #e6c9a8; }
-.note-gray { background: #e8eaed; }
+.note-default { background: #fdfcf9; }
+.note-red { background: #f2c9c3; }
+.note-orange { background: #f3d3a0; }
+.note-yellow { background: #f2e7ad; }
+.note-green { background: #d4e2bf; }
+.note-teal { background: #c3dfd8; }
+.note-blue { background: #c9dbe8; }
+.note-darkblue { background: #c2d0e2; }
+.note-purple { background: #d9c9e2; }
+.note-pink { background: #ead0dc; }
+.note-brown { background: #dfcdb8; }
+.note-gray { background: #e2e0dc; }
 
 [data-theme="dark"] .note-default { background: #303134; color: #e8eaed; }
 [data-theme="dark"] .note-red { background: #5c2b29; color: #f28b82; }
@@ -156,7 +156,6 @@ input, textarea {
     --desktop-reading-width: 1000px;
   }
 }
-
 
 /* Premium interaction layer: restrained motion, depth and focus states. */
 :root {
