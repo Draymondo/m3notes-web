@@ -1,5 +1,6 @@
 import { getFirestoreCtx } from '../firebase'
-import { deleteDriveFile, getDriveAccessToken } from './drive'
+import { deleteDriveFile, getDriveAccessToken, uploadDriveBlob } from './drive'
+import { remapVaultAttachments } from './vault'
 
 const NOTES = 'notes'
 const HISTORY = 'history'
@@ -202,6 +203,103 @@ export async function permanentlyDeleteNote(noteId) {
   }
 
   await deleteDoc(noteRef)
+}
+
+function base64ToArrayBuffer(base64) {
+  const binary = atob(base64 || '')
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index)
+  return bytes.buffer
+}
+
+function remapRegularAttachments(attachments, idMap) {
+  if (!Array.isArray(attachments)) return attachments
+  return attachments.map(attachment => ({
+    ...attachment,
+    driveFileId: idMap.get(attachment?.driveFileId) || attachment?.driveFileId
+  }))
+}
+
+export async function restoreCompleteBackupData(userId, payload, { vaultKey = null } = {}) {
+  if (!payload || payload.backupType !== 'complete-data-and-drive' || !payload.userData) {
+    throw new Error('Cette sauvegarde complète M3Notes est invalide.')
+  }
+
+  const data = payload.userData
+  const sourceNotes = Array.isArray(data.notes) ? data.notes : []
+  const sourceHistories = data.histories && typeof data.histories === 'object' ? data.histories : {}
+  const sourceDriveFiles = Array.isArray(payload.driveFiles) ? payload.driveFiles : []
+  const hasVaultNotes = sourceNotes.some(note => note?.isVault)
+  if (hasVaultNotes && !vaultKey) {
+    throw new Error('Déverrouillez le coffre avant de restaurer une sauvegarde complète contenant des notes du coffre.')
+  }
+
+  const { db, doc, collection, setDoc, Timestamp } = await getFirestoreCtx()
+  const idMap = new Map()
+  const driveIdMap = new Map()
+
+  if (sourceDriveFiles.length) {
+    const accessToken = await getDriveAccessToken()
+    for (const file of sourceDriveFiles) {
+      if (!file?.contentBase64) continue
+      const bytes = base64ToArrayBuffer(file.contentBase64)
+      const blob = new Blob([bytes], { type: file.mimeType || 'application/octet-stream' })
+      const restored = await uploadDriveBlob(blob, accessToken, {
+        name: file.name || 'm3notes-fichier',
+        mimeType: file.mimeType || 'application/octet-stream'
+      })
+      if (file.id && restored?.id) driveIdMap.set(file.id, restored.id)
+    }
+  }
+
+  for (const source of sourceNotes) {
+    const originalId = source.id
+    const ref = doc(collection(db, NOTES))
+    const restored = { ...source }
+    delete restored.id
+    delete restored.createdAt
+    delete restored.updatedAt
+    delete restored.userId
+    restored.userId = userId
+
+    if (Array.isArray(restored.attachments)) {
+      restored.attachments = remapRegularAttachments(restored.attachments, driveIdMap)
+    }
+    if (restored.isVault && restored.encAttachments) {
+      restored.encAttachments = await remapVaultAttachments(vaultKey, restored.encAttachments, driveIdMap)
+    }
+
+    restored.createdAt = source.createdAt ? Timestamp.fromMillis(Number(source.createdAt)) : Timestamp.now()
+    restored.updatedAt = source.updatedAt ? Timestamp.fromMillis(Number(source.updatedAt)) : Timestamp.now()
+    if (source.deletedAt) restored.deletedAt = Timestamp.fromMillis(Number(source.deletedAt))
+    else if ('deletedAt' in restored) restored.deletedAt = null
+
+    await setDoc(ref, restored)
+    if (originalId) idMap.set(originalId, ref.id)
+  }
+
+  for (const [oldNoteId, versions] of Object.entries(sourceHistories)) {
+    const newNoteId = idMap.get(oldNoteId)
+    if (!newNoteId || !Array.isArray(versions)) continue
+    for (const version of versions) {
+      const ref = doc(collection(db, NOTES, newNoteId, HISTORY))
+      const restored = { ...version }
+      delete restored.id
+      delete restored.savedAt
+      restored.savedAt = version.savedAt ? Timestamp.fromMillis(Number(version.savedAt)) : Timestamp.now()
+      await setDoc(ref, restored)
+    }
+  }
+
+  if (data.vaultMeta) {
+    await setDoc(doc(db, 'vaultMeta', userId), data.vaultMeta)
+  }
+
+  return {
+    notes: sourceNotes.length,
+    histories: Object.values(sourceHistories).reduce((total, versions) => total + (Array.isArray(versions) ? versions.length : 0), 0),
+    driveFiles: driveIdMap.size
+  }
 }
 
 export function isTrashExpired(note) {
