@@ -258,6 +258,15 @@ export async function deleteVaultNote(noteId, key) {
   await deleteDoc(noteRef)
 }
 
+export async function remapVaultAttachments(key, encryptedAttachments, idMap) {
+  const attachments = await decryptAttachments(key, encryptedAttachments)
+  const remapped = attachments.map(attachment => ({
+    ...attachment,
+    driveFileId: idMap.get(attachment?.driveFileId) || attachment?.driveFileId
+  }))
+  return encryptAttachments(key, remapped)
+}
+
 export async function decryptVaultNote(key, note) {
   const title = note.encTitle ? await decryptText(key, note.encTitle) : ''
   const content = note.encContent ? await decryptText(key, note.encContent) : ''
