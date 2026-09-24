@@ -53,3 +53,35 @@
   .note-card .note-content,
   .note-card .checklist { font-size: 1rem; }
 }
+
+
+/* Premium card interaction: the note stays calm at rest and responds immediately to touch. */
+.note-card {
+  transition: transform var(--motion-normal) var(--ease-out), box-shadow var(--motion-normal) var(--ease-out), filter var(--motion-normal) var(--ease-out);
+  will-change: transform;
+}
+
+.note-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.13);
+}
+
+.note-card:active { transform: translateY(-1px) scale(0.992); }
+
+.note-card.selected {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 70%, transparent), var(--shadow);
+}
+
+.favorite-btn {
+  transition: transform var(--motion-fast) var(--ease-out), opacity var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out);
+}
+
+.favorite-btn:hover { background: rgba(0,0,0,0.07); transform: scale(1.06); }
+.favorite-btn:active { transform: scale(0.88); }
+
+[data-theme="dark"] .favorite-btn:hover { background: rgba(255,255,255,0.10); }
+
+.label {
+  transition: opacity var(--motion-fast) var(--ease-out), transform var(--motion-fast) var(--ease-out);
+}
+.label:hover { opacity: 1; transform: translateY(-1px); }
