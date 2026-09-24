@@ -180,8 +180,10 @@ export function parseBackupFile(file) {
     reader.onload = () => {
       try {
         const payload = JSON.parse(reader.result)
-        if (!payload || !Array.isArray(payload.notes)) throw new Error('Format de sauvegarde M3Notes invalide.')
-        resolve(payload.notes)
+        if (!payload || !Array.isArray(payload.notes) && payload.backupType !== 'complete-data-and-drive') {
+          throw new Error('Format de sauvegarde M3Notes invalide.')
+        }
+        resolve(payload)
       } catch (error) {
         reject(error)
       }
