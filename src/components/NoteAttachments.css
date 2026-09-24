@@ -149,3 +149,87 @@
   color: var(--danger, #c62828);
   font-size: 0.85rem;
 }
+
+
+/* Premium attachment surface: quiet by default, tactile on interaction. */
+.note-attachments,
+.vault-attachments {
+  transition: border-color var(--motion-normal) var(--ease-out), opacity var(--motion-normal) var(--ease-out);
+}
+.attachments-empty-action,
+.attachments-add,
+.attachment-actions button,
+.attachment-actions a,
+.vault-attachments-add,
+.vault-attachment-download,
+.vault-attachment-delete {
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out), opacity var(--motion-fast) var(--ease-out);
+}
+.attachments-empty-action:hover:not(:disabled),
+.attachments-add:hover:not(:disabled),
+.vault-attachments-add:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.attachments-empty-action:active:not(:disabled),
+.attachments-add:active:not(:disabled),
+.attachment-actions button:active:not(:disabled),
+.attachment-actions a:active,
+.vault-attachments-add:active:not(:disabled),
+.vault-attachment-download:active:not(:disabled),
+.vault-attachment-delete:active:not(:disabled) {
+  transform: scale(.94);
+}
+.attachment-item,
+.vault-attachment-item {
+  border-radius: 12px;
+  transition: background var(--motion-fast) var(--ease-out), transform var(--motion-fast) var(--ease-out);
+}
+.attachment-item:hover,
+.vault-attachment-item:hover {
+  background: rgba(127,127,127,.055);
+}
+.attachment-main,
+.vault-attachment-main {
+  transition: transform var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out);
+}
+.attachment-main:hover,
+.vault-attachment-main:hover:not(:disabled) {
+  transform: translateX(2px);
+}
+.attachment-icon,
+.vault-attachment-icon {
+  transition: transform var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out);
+}
+.attachment-item:hover .attachment-icon,
+.vault-attachment-item:hover .vault-attachment-icon {
+  transform: scale(1.04);
+}
+.attachments-error,
+.vault-attachment-error {
+  animation: attachment-error-in 180ms var(--ease-out) both;
+}
+@keyframes attachment-error-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .note-attachments,
+  .vault-attachments,
+  .attachments-empty-action,
+  .attachments-add,
+  .attachment-actions button,
+  .attachment-actions a,
+  .vault-attachments-add,
+  .vault-attachment-download,
+  .vault-attachment-delete,
+  .attachment-item,
+  .vault-attachment-item,
+  .attachment-main,
+  .vault-attachment-main,
+  .attachment-icon,
+  .vault-attachment-icon {
+    transition: none;
+    animation: none;
+  }
+}
