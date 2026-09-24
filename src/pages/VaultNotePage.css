@@ -156,3 +156,46 @@
   .vault-title-input { font-size: 2rem; }
   .vault-content-input { font-size: 1.18rem; }
 }
+
+
+/* Premium private editor: the security context is visible without becoming visually heavy. */
+.vault-note-page { animation: vault-note-in 220ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both; }
+
+.vault-note-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(16px) saturate(1.06);
+  -webkit-backdrop-filter: blur(16px) saturate(1.06);
+}
+
+.vault-note-toolbar .icon-btn { transition: transform var(--motion-fast, 140ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)), background-color var(--motion-fast, 140ms) ease; }
+.vault-note-toolbar .icon-btn:hover { transform: translateY(-1px); }
+.vault-note-toolbar .icon-btn:active { transform: scale(0.9); }
+
+.vault-note-badge {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+}
+
+.vault-title-input,
+.vault-content-input { transition: opacity 180ms ease, transform 180ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)); }
+.vault-title-input:focus,
+.vault-content-input:focus { opacity: 1; }
+
+.vault-content-input { line-height: 1.65; }
+.vault-note-date-detail { transition: opacity 180ms ease; }
+
+.vault-error { animation: vault-error-in 180ms ease-out both; }
+
+@keyframes vault-note-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes vault-error-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+
+[data-theme="dark"] .vault-note-toolbar { background: color-mix(in srgb, var(--surface) 84%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .vault-note-page, .vault-error { animation: none !important; }
+}
