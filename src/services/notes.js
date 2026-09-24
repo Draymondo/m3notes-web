@@ -1,4 +1,5 @@
-import { getFirestoreCtx } from '../firebase'\nimport { deleteDriveFile, getDriveAccessToken } from './drive'
+import { getFirestoreCtx } from '../firebase'
+import { deleteDriveFile, getDriveAccessToken } from './drive'
 
 const NOTES = 'notes'
 const HISTORY = 'history'
