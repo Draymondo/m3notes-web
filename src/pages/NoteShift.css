@@ -340,7 +340,7 @@
   .noteshift-play-area{gap:28px}
   .noteshift-target-wrap{width:170px}
   .noteshift-target>div{min-height:32px}
-  .noteshift-board{width:min(500px,calc(100vh - 245px))}
+  .noteshift-board{width:min(500px,calc(100dvh - 310px))}
   .noteshift-hint{margin-top:9px}
 }
 
