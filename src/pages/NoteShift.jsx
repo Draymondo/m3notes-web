@@ -84,7 +84,7 @@ export default function NoteShift() {
   const [levelId, setLevelId] = useState(1)
   const [mode, setMode] = useState('campaign')
   const level = useMemo(() => LEVELS.find(l => l.id === levelId) || LEVELS[0], [levelId])
-  const size = level.size
+  const size = mode === 'infinite' ? 4 : level.size
   const target = useMemo(() => solvedBoard(size), [size])
   const [board, setBoard] = useState(() => scrambleBoard(3, 6))
   const [history, setHistory] = useState([])
