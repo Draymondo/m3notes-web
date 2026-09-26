@@ -9,6 +9,12 @@
   --radius: 12px;
   --fab-size: 56px;
   --reading-font: Georgia, 'Times New Roman', serif;
+
+  /* Typographie fluide : s'adapte en continu entre le téléphone (~390px)
+     et une TV 4K (~3840px) au lieu de sauter par paliers fixes. */
+  --fs-note-title: clamp(1rem, 0.9rem + 0.25vw, 1.2rem);
+  --fs-note-content: clamp(0.9rem, 0.83rem + 0.2vw, 1.05rem);
+  --fs-note-date: clamp(0.7rem, 0.66rem + 0.1vw, 0.8rem);
 }
 
 [data-theme="dark"] {
