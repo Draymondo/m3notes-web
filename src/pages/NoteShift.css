@@ -1,12 +1,363 @@
-.noteshift-page{min-height:100vh;background:var(--bg);color:var(--text)}
-.noteshift-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;padding:12px 20px;background:color-mix(in srgb,var(--surface) 92%,transparent);border-bottom:1px solid var(--border);backdrop-filter:blur(14px)}
-.noteshift-back,.noteshift-brand{display:inline-flex;align-items:center;gap:8px}.noteshift-back{border:0;background:transparent;padding:8px 10px;border-radius:10px;font-weight:600}.noteshift-back:hover{background:var(--border)}.noteshift-brand{color:var(--primary);margin-left:auto}
-.noteshift-main{width:min(920px,calc(100% - 32px));margin:auto;padding:34px 0 70px}.noteshift-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px}.noteshift-kicker{margin-bottom:5px;color:var(--primary);font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.noteshift-intro h1{font-size:clamp(2rem,5vw,3rem);line-height:1;letter-spacing:-.04em}.noteshift-intro p:not(.noteshift-kicker){margin-top:9px;color:var(--text-secondary)}
-.noteshift-mode{display:flex;padding:4px;border:1px solid var(--border);background:var(--surface);border-radius:14px}.noteshift-mode button{border:0;background:transparent;border-radius:10px;padding:8px 13px;color:var(--text-secondary);font-weight:600}.noteshift-mode button.active{background:var(--primary);color:#fff}
-.noteshift-levels{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}.noteshift-levels button{position:relative;width:42px;height:38px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;font-weight:700}.noteshift-levels button.selected{border-color:var(--primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 18%,transparent)}.noteshift-levels button:disabled{opacity:.35;cursor:not-allowed}.noteshift-levels small{position:absolute;right:4px;bottom:2px;font-size:.55rem;color:var(--primary)}.noteshift-infinite-label{margin-bottom:18px;color:var(--text-secondary);font-size:.85rem}
-.noteshift-game{padding:clamp(18px,4vw,34px);border:1px solid var(--border);background:var(--surface);border-radius:22px;box-shadow:var(--shadow)}.noteshift-status{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px}.noteshift-status>div:first-child{display:flex;flex-direction:column;gap:3px}.noteshift-status span{color:var(--text-secondary);font-size:.82rem}.noteshift-status strong{font-size:1.05rem}.noteshift-actions{display:flex;gap:7px}.noteshift-actions button{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:10px;padding:8px 10px}.noteshift-actions button:disabled{opacity:.4;cursor:not-allowed}
-.noteshift-target-wrap{width:min(300px,70%);margin:0 auto 22px}.noteshift-target-title{margin-bottom:7px;color:var(--text-secondary);font-size:.68rem;font-weight:800;letter-spacing:.1em}.noteshift-target{display:grid;gap:3px;padding:5px;border-radius:10px;background:var(--border)}.noteshift-target>div{min-height:42px;display:grid;place-items:center;background:var(--bg);color:var(--text-secondary);border-radius:6px;font-size:.7rem;font-weight:700}.noteshift-target>.empty{background:transparent}
-.noteshift-board{width:min(620px,100%);aspect-ratio:1;display:grid;gap:7px;margin:auto;padding:7px;border-radius:18px;background:color-mix(in srgb,var(--primary) 14%,var(--border));touch-action:none;user-select:none}.noteshift-tile{position:relative;min-width:0;border:1px solid color-mix(in srgb,var(--primary) 16%,var(--border));border-radius:12px;background:var(--bg);color:var(--text);box-shadow:0 3px 8px rgba(0,0,0,.07);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;transition:transform 120ms ease,box-shadow 120ms ease;touch-action:none}.noteshift-tile:hover{transform:translateY(-1px);box-shadow:0 5px 12px rgba(0,0,0,.1)}.noteshift-tile:active{transform:scale(.97)}.noteshift-tile.empty{background:color-mix(in srgb,var(--bg) 65%,var(--border));box-shadow:inset 0 0 0 1px var(--border)}.tile-number{font-size:clamp(1.05rem,3vw,1.55rem);font-weight:800;letter-spacing:-.04em}.tile-lines{width:42%;display:flex;flex-direction:column;gap:3px;opacity:.32}.tile-lines i{height:2px;width:100%;background:currentColor;border-radius:2px}.tile-lines i:nth-child(2){width:72%}.tile-lines i:nth-child(3){width:88%}.tile-empty-mark{opacity:.25;font-size:1.4rem}
-.noteshift-hint{max-width:650px;margin:18px auto 0;text-align:center;color:var(--text-secondary);font-size:.82rem;line-height:1.55}.noteshift-hint strong{color:var(--text)}.noteshift-success{margin:22px auto 0;width:min(360px,100%);display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px;border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border));background:color-mix(in srgb,var(--primary) 7%,var(--surface));border-radius:16px;text-align:center}.success-stars{color:var(--primary);letter-spacing:3px;font-size:1.2rem}.noteshift-success span{color:var(--text-secondary);font-size:.82rem}.noteshift-success button{margin-top:6px;border:0;background:var(--primary);color:#fff;border-radius:10px;padding:9px 14px;font-weight:700}
-@media(max-width:640px){.noteshift-main{width:min(100% - 20px,920px);padding-top:22px}.noteshift-header{padding:10px 12px}.noteshift-intro{align-items:stretch;flex-direction:column;gap:16px}.noteshift-mode{align-self:flex-start}.noteshift-game{border-radius:16px;padding:16px}.noteshift-actions span{display:none}.noteshift-target-wrap{width:62%}.noteshift-board{gap:4px;padding:5px;border-radius:14px}.noteshift-tile{border-radius:9px}}
-@media(prefers-reduced-motion:reduce){.noteshift-tile{transition:none}}
+.noteshift-page{
+  min-height:100dvh;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+.noteshift-header{
+  position:sticky;
+  top:0;
+  z-index:20;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-height:52px;
+  padding:8px clamp(12px,2vw,28px);
+  background:color-mix(in srgb,var(--surface) 94%,transparent);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+
+.noteshift-back,.noteshift-brand{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.noteshift-back{
+  border:0;
+  background:transparent;
+  padding:8px 10px;
+  border-radius:10px;
+  color:var(--text);
+  font-weight:600;
+}
+.noteshift-back:hover{background:var(--border)}
+.noteshift-brand{color:var(--primary);margin-left:auto}
+
+.noteshift-main{
+  width:min(1180px,calc(100% - 32px));
+  margin:auto;
+  padding:clamp(18px,3vw,34px) 0 56px;
+}
+
+.noteshift-intro{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:18px;
+}
+.noteshift-kicker{
+  margin:0 0 5px;
+  color:var(--primary);
+  font-size:.72rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.noteshift-intro h1{
+  margin:0;
+  font-size:clamp(1.9rem,4vw,3rem);
+  line-height:1;
+  letter-spacing:-.04em;
+}
+.noteshift-intro p:not(.noteshift-kicker){
+  margin:8px 0 0;
+  color:var(--text-secondary);
+  font-size:clamp(.84rem,1.5vw,.95rem);
+}
+
+.noteshift-mode{
+  display:flex;
+  flex:0 0 auto;
+  padding:3px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  border-radius:12px;
+}
+.noteshift-mode button{
+  border:0;
+  background:transparent;
+  border-radius:9px;
+  padding:8px 12px;
+  color:var(--text-secondary);
+  font-weight:700;
+  white-space:nowrap;
+}
+.noteshift-mode button.active{background:var(--primary);color:#fff}
+
+.noteshift-levels{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:7px;
+  margin:0 0 14px;
+  padding:2px 1px 5px;
+  overflow-x:auto;
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch;
+}
+.noteshift-levels button{
+  position:relative;
+  flex:0 0 42px;
+  width:42px;
+  height:38px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+  border-radius:10px;
+  font-weight:700;
+}
+.noteshift-levels button.selected{
+  border-color:var(--primary);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 18%,transparent);
+}
+.noteshift-levels button:disabled{opacity:.35;cursor:not-allowed}
+.noteshift-levels small{
+  position:absolute;
+  right:4px;
+  bottom:2px;
+  font-size:.55rem;
+  color:var(--primary);
+}
+.noteshift-infinite-label{
+  margin:0 0 14px;
+  color:var(--text-secondary);
+  font-size:.82rem;
+}
+
+.noteshift-game{
+  padding:clamp(14px,2.2vw,28px);
+  border:1px solid var(--border);
+  background:var(--surface);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+}
+
+.noteshift-status{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:18px;
+}
+.noteshift-status>div:first-child{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.noteshift-status span{color:var(--text-secondary);font-size:.8rem}
+.noteshift-status strong{font-size:1rem}
+.noteshift-actions{display:flex;gap:7px}
+.noteshift-actions button{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  color:var(--text);
+  border-radius:10px;
+  padding:8px 10px;
+  min-height:38px;
+}
+.noteshift-actions button:disabled{opacity:.4;cursor:not-allowed}
+
+.noteshift-play-area{
+  display:grid;
+  grid-template-columns:minmax(150px,220px) minmax(0,620px);
+  justify-content:center;
+  align-items:center;
+  gap:clamp(24px,5vw,72px);
+}
+.noteshift-target-wrap{
+  width:min(220px,100%);
+  margin:0 auto;
+}
+.noteshift-target-title{
+  margin-bottom:7px;
+  color:var(--text-secondary);
+  font-size:.66rem;
+  font-weight:800;
+  letter-spacing:.1em;
+}
+.noteshift-target{
+  display:grid;
+  gap:3px;
+  padding:5px;
+  border-radius:10px;
+  background:var(--border);
+}
+.noteshift-target>div{
+  min-height:42px;
+  display:grid;
+  place-items:center;
+  aspect-ratio:1;
+  background:var(--bg);
+  color:var(--text-secondary);
+  border-radius:6px;
+  font-size:.7rem;
+  font-weight:700;
+}
+.noteshift-target>.empty{background:transparent}
+
+.noteshift-board{
+  width:min(620px,100%);
+  aspect-ratio:1;
+  display:grid;
+  gap:clamp(4px,.65vw,8px);
+  margin:auto;
+  padding:clamp(5px,.7vw,8px);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--primary) 14%,var(--border));
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.noteshift-tile{
+  position:relative;
+  min-width:0;
+  min-height:0;
+  border:1px solid color-mix(in srgb,var(--primary) 16%,var(--border));
+  border-radius:clamp(8px,1vw,13px);
+  background:var(--bg);
+  color:var(--text);
+  box-shadow:0 3px 8px rgba(0,0,0,.07);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(4px,.65vw,7px);
+  transition:transform 120ms ease,box-shadow 120ms ease;
+  touch-action:none;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.noteshift-tile:hover{transform:translateY(-1px);box-shadow:0 5px 12px rgba(0,0,0,.1)}
+.noteshift-tile:active{transform:scale(.97)}
+.noteshift-tile.empty{
+  background:color-mix(in srgb,var(--bg) 65%,var(--border));
+  box-shadow:inset 0 0 0 1px var(--border);
+  cursor:default;
+}
+.tile-number{
+  font-size:clamp(1rem,2.7vw,1.55rem);
+  font-weight:800;
+  letter-spacing:-.04em;
+}
+.tile-lines{
+  width:42%;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  opacity:.32;
+}
+.tile-lines i{height:2px;width:100%;background:currentColor;border-radius:2px}
+.tile-lines i:nth-child(2){width:72%}
+.tile-lines i:nth-child(3){width:88%}
+.tile-empty-mark{opacity:.25;font-size:1.4rem}
+
+.noteshift-hint{
+  max-width:700px;
+  margin:16px auto 0;
+  text-align:center;
+  color:var(--text-secondary);
+  font-size:.8rem;
+  line-height:1.5;
+}
+.noteshift-hint strong{color:var(--text)}
+
+.noteshift-success{
+  margin:18px auto 0;
+  width:min(360px,100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  padding:16px;
+  border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border));
+  background:color-mix(in srgb,var(--primary) 7%,var(--surface));
+  border-radius:15px;
+  text-align:center;
+}
+.success-stars{color:var(--primary);letter-spacing:3px;font-size:1.15rem}
+.noteshift-success span{color:var(--text-secondary);font-size:.8rem}
+.noteshift-success button{
+  margin-top:5px;
+  border:0;
+  background:var(--primary);
+  color:#fff;
+  border-radius:10px;
+  padding:9px 14px;
+  font-weight:700;
+}
+
+/* Phones, including Galaxy A16 portrait and landscape. */
+@media(max-width:700px){
+  .noteshift-main{
+    width:min(100% - 16px,620px);
+    padding-top:16px;
+    padding-bottom:28px;
+  }
+  .noteshift-header{min-height:48px;padding:7px 9px}
+  .noteshift-back{padding:7px 8px}
+  .noteshift-intro{
+    align-items:stretch;
+    flex-direction:column;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .noteshift-mode{align-self:flex-start}
+  .noteshift-game{padding:12px;border-radius:15px}
+  .noteshift-status{margin-bottom:12px}
+  .noteshift-actions button{padding:8px;min-width:38px;justify-content:center}
+  .noteshift-actions span{display:none}
+  .noteshift-play-area{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .noteshift-target-wrap{
+    width:min(190px,48vw);
+    order:0;
+  }
+  .noteshift-board{
+    width:min(100%,520px);
+    gap:4px;
+    padding:5px;
+    border-radius:14px;
+    order:1;
+  }
+  .noteshift-hint{margin-top:12px;font-size:.76rem}
+  .noteshift-success{margin-top:14px;padding:13px}
+}
+
+/* Short laptop / tablet landscape: keep the board large without wasting vertical space. */
+@media(min-width:701px) and (max-height:820px){
+  .noteshift-main{padding-top:16px;padding-bottom:24px}
+  .noteshift-game{padding:14px 18px}
+  .noteshift-status{margin-bottom:10px}
+  .noteshift-play-area{gap:28px}
+  .noteshift-target-wrap{width:170px}
+  .noteshift-target>div{min-height:32px}
+  .noteshift-board{width:min(500px,calc(100dvh - 310px))}
+  .noteshift-hint{margin-top:9px}
+}
+
+/* 4K and other very wide screens: use the space, but cap the board for readability. */
+@media(min-width:1800px){
+  .noteshift-main{width:min(1380px,calc(100% - 64px))}
+  .noteshift-game{padding:30px 40px}
+  .noteshift-play-area{grid-template-columns:240px minmax(0,680px);gap:90px}
+  .noteshift-target-wrap{width:240px}
+  .noteshift-board{width:680px}
+  .noteshift-hint{font-size:.84rem}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .noteshift-tile{transition:none}
+}
+
+@media(hover:none){
+  .noteshift-tile:hover{transform:none;box-shadow:0 3px 8px rgba(0,0,0,.07)}
+}
