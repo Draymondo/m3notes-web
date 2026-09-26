@@ -51,6 +51,8 @@ self.addEventListener('fetch', (event) => {
           if (request.mode === 'navigate') {
             const shell = await caches.match(self.registration.scope)
             if (shell) return shell
+            const root = await caches.match(new URL('./', self.registration.scope).toString())
+            if (root) return root
           }
           throw new Error('network-and-cache-miss')
         })

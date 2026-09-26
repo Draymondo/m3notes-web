@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Archive, StickyNote, Star, Sun, Moon, LogOut, Plus, Trash2, Lock, X, Pin, RotateCcw, Download } from 'lucide-react'
+import { Archive, StickyNote, Star, Sun, Moon, LogOut, Plus, Trash2, Lock, X, Pin, RotateCcw, Download, Gamepad2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import {
@@ -386,6 +386,7 @@ export default function HomePage() {
             >
               <Trash2 size={20} />
             </button>
+            <button onClick={() => navigate('/game')} title="NoteShift"><Gamepad2 size={20} /></button>
             <button onClick={() => navigate('/vault')} title="Coffre">
               <Lock size={20} />
             </button>
