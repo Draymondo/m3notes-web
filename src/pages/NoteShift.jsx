@@ -194,19 +194,21 @@ export default function NoteShift() {
             </div>
           </div>
 
-          <div className="noteshift-target-wrap">
-            <div className="noteshift-target-title">OBJECTIF</div>
-            <div className="noteshift-target" style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
-              {target.map((value, i) => <div key={i} className={value === 0 ? 'empty' : ''}>{value || ''}</div>)}
+          <div className="noteshift-play-area">
+            <div className="noteshift-target-wrap">
+              <div className="noteshift-target-title">OBJECTIF</div>
+              <div className="noteshift-target" style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
+                {target.map((value, i) => <div key={i} className={value === 0 ? 'empty' : ''}>{value || ''}</div>)}
+              </div>
             </div>
-          </div>
 
-          <div className="noteshift-board" style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
+            <div className="noteshift-board" style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
             {board.map((value, index) => (
               <button key={index} className={value === 0 ? 'noteshift-tile empty' : 'noteshift-tile'} onPointerDown={e => onPointerDown(e, index)} onPointerUp={e => onPointerUp(e, index)} onPointerCancel={() => setDrag(null)}>
                 {value === 0 ? <span className="tile-empty-mark">·</span> : <><span className="tile-number">{String(value).padStart(2, '0')}</span><span className="tile-lines"><i /><i /><i /></span></>}
               </button>
             ))}
+            </div>
           </div>
 
           <p className="noteshift-hint"><strong>Toucher</strong> une tuile voisine de la case vide pour la déplacer · <strong>glisser</strong> une tuile pour décaler sa ligne ou sa colonne.</p>
