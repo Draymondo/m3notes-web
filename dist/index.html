@@ -6,7 +6,8 @@
     <link rel="manifest" href="/m3notes-web/manifest.json" />
     <link rel="apple-touch-icon" href="/m3notes-web/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1a73e8" />
+    <meta name="theme-color" content="#1a73e8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -18,7 +19,8 @@
          dès son premier rendu. */
       html, body { background: #ffffff; }
       @media (prefers-color-scheme: dark) {
-        html, body { background: #171717; }
+        /* Fond AMOLED : noir pur dès le premier rendu (évite un flash gris). */
+        html, body { background: #000000; }
       }
       .initial-loader {
         height: 100vh;
@@ -33,12 +35,12 @@
         to { transform: rotate(360deg); }
       }
     </style>
-    <script type="module" crossorigin src="/m3notes-web/assets/index-CzbA_brh.js"></script>
-    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/react-BuKqQC-W.js">
+    <script type="module" crossorigin src="/m3notes-web/assets/index-CPkML47V.js"></script>
+    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/react-6n7iaA6z.js">
     <link rel="modulepreload" crossorigin href="/m3notes-web/assets/firebase-core-BKVkiGoc.js">
-    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/firebase-auth-tE03Xl5_.js">
-    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/icons-CH7nwaa9.js">
-    <link rel="stylesheet" crossorigin href="/m3notes-web/assets/index-ByfJHIyI.css">
+    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/firebase-auth-DVXL6VfL.js">
+    <link rel="modulepreload" crossorigin href="/m3notes-web/assets/icons-Dv6bybNS.js">
+    <link rel="stylesheet" crossorigin href="/m3notes-web/assets/index-CEicDz_5.css">
   </head>
   <body>
     <div id="root">

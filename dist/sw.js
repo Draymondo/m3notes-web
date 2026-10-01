@@ -1,9 +1,8 @@
 // La version de cache et la liste de précache ci-dessous sont injectées au
 // build par le plugin sw-precache de vite.config.js, à partir du contenu
-// réel de dist/. En dev (npm run dev), ce fichier n'est pas enregistré
-// comme SW (voir main.jsx) donc ce template n'est jamais exécuté tel quel.
-const CACHE_NAME = 'm3notes-shell-d0328085b1'
-const PRECACHE_URLS = ["/m3notes-web/","/m3notes-web/apple-touch-icon.png","/m3notes-web/assets/ConfirmDialog-67BJSDFm.js","/m3notes-web/assets/ConfirmDialog-D3dsECrb.css","/m3notes-web/assets/firebase-auth-tE03Xl5_.js","/m3notes-web/assets/firebase-core-BKVkiGoc.js","/m3notes-web/assets/firebase-firestore-InLXtzGG.js","/m3notes-web/assets/HomePage-CB1lOfbP.css","/m3notes-web/assets/HomePage-D-rlvaM3.js","/m3notes-web/assets/icons-CH7nwaa9.js","/m3notes-web/assets/index-ByfJHIyI.css","/m3notes-web/assets/index-CzbA_brh.js","/m3notes-web/assets/LoginPage-Bl6EQU8D.css","/m3notes-web/assets/LoginPage-Dm77FFcr.js","/m3notes-web/assets/NotePage-BgQov32W.css","/m3notes-web/assets/NotePage-C64nJ0tC.js","/m3notes-web/assets/notes-BbFU8PZJ.js","/m3notes-web/assets/react-BuKqQC-W.js","/m3notes-web/assets/VaultNotePage-Ch0m7QzF.js","/m3notes-web/assets/VaultNotePage-DKFkEcYX.css","/m3notes-web/assets/VaultPage-BAk_fESi.js","/m3notes-web/assets/VaultPage-rTnqTllu.css","/m3notes-web/favicon.svg","/m3notes-web/icon-192.png","/m3notes-web/icon-512.png","/m3notes-web/index.html","/m3notes-web/manifest.json"]
+// réel de dist/.
+const CACHE_NAME = 'm3notes-shell-ae282da3a6'
+const PRECACHE_URLS = ["/m3notes-web/","/m3notes-web/apple-touch-icon.png","/m3notes-web/assets/firebase-auth-DVXL6VfL.js","/m3notes-web/assets/firebase-core-BKVkiGoc.js","/m3notes-web/assets/firebase-firestore-InLXtzGG.js","/m3notes-web/assets/icons-Dv6bybNS.js","/m3notes-web/assets/index-CEicDz_5.css","/m3notes-web/assets/index-CPkML47V.js","/m3notes-web/assets/react-6n7iaA6z.js","/m3notes-web/favicon.svg","/m3notes-web/icon-192.png","/m3notes-web/icon-512.png","/m3notes-web/index.html","/m3notes-web/manifest.json"]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -26,16 +25,18 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
 
   const url = new URL(request.url)
+
+  // Le service worker ne doit jamais intercepter sa propre mise à jour.
+  // Sinon l'ancien SW peut mettre sw.js en cache et empêcher définitivement
+  // le navigateur de récupérer la nouvelle version.
+  if (url.pathname.endsWith('/sw.js')) return
+
   // Ne jamais intercepter les requêtes cross-origin (Firestore, Auth,
-  // Storage...) : les mettre en cache ici n'aurait pas de sens et ça
-  // ralentissait/perturbait le canal temps réel de Firestore.
+  // Storage...).
   if (url.origin !== self.location.origin) return
 
   event.respondWith(
     caches.match(request).then((cached) => {
-      // App shell : servi depuis le cache en premier (rapide, y compris
-      // hors-ligne), avec mise à jour silencieuse en arrière-plan si une
-      // ressource non précachée doit être récupérée.
       if (cached) return cached
 
       return fetch(request)
@@ -50,6 +51,8 @@ self.addEventListener('fetch', (event) => {
           if (request.mode === 'navigate') {
             const shell = await caches.match(self.registration.scope)
             if (shell) return shell
+            const root = await caches.match(new URL('./', self.registration.scope).toString())
+            if (root) return root
           }
           throw new Error('network-and-cache-miss')
         })
