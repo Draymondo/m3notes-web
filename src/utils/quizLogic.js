@@ -123,6 +123,62 @@ export function questionNoteToLabel(entries, notes) {
   }
 }
 
+// ── Mémorisation ──
+export const MEMORY_OPTIONS = 6
+export const MEMORY_FLASH_MS = 5000
+export const MEMORY_ROUNDS = 5
+export const MEMORY_MAX_PICK = 4
+// Nombre de manches parfaites d'affilée pour débloquer le niveau suivant.
+export const MEMORY_STREAK_TO_LEVEL_UP = 3
+
+// Construit une manche : on retient `wanted` mots-clés d'une note (affichés
+// brièvement), puis on propose MEMORY_OPTIONS propositions à cocher.
+// Retourne null si les notes ne permettent pas de former une manche.
+export function buildMemoryRound(entries, notes, level = 1) {
+  const wanted = Math.min(MEMORY_MAX_PICK, Math.max(2, level))
+  const tagged = notes.filter(note => new Set((note.labels || []).map(l => String(l).trim().toLowerCase())).size >= wanted)
+  if (tagged.length === 0) return null
+
+  for (const note of shuffle(tagged)) {
+    const unique = [...new Set((note.labels || []).map(l => String(l).trim()).filter(Boolean))]
+    if (unique.length < wanted) continue
+    const ownKeys = new Set(unique.map(l => l.toLowerCase()))
+    const targets = shuffle(unique).slice(0, wanted)
+    const foreign = entries.filter(entry => !ownKeys.has(entry.key))
+    const decoysNeeded = MEMORY_OPTIONS - targets.length
+    if (foreign.length < decoysNeeded) continue
+
+    const options = shuffle([
+      ...targets.map(text => ({ key: text.toLowerCase(), text, correct: true })),
+      ...shuffle(foreign).slice(0, decoysNeeded).map(entry => ({ key: entry.key, text: entry.display, correct: false }))
+    ])
+    return {
+      noteId: note.id,
+      title: noteTitle(note),
+      labels: targets,
+      options,
+      toPick: targets.length
+    }
+  }
+  return null
+}
+
+// Compare les mots-clés cochés avec ceux à retenir.
+export function scoreMemoryRound(round, pickedKeys) {
+  const wanted = new Set(round.labels.map(label => label.toLowerCase()))
+  const picked = new Set((pickedKeys || []).map(key => String(key).toLowerCase()))
+  const correct = [...picked].filter(key => wanted.has(key)).length
+  const wrong = [...picked].filter(key => !wanted.has(key)).length
+  const missed = [...wanted].filter(key => !picked.has(key)).length
+  return {
+    correct,
+    wrong,
+    missed,
+    perfect: correct === wanted.size && wrong === 0,
+    points: Math.max(0, correct - wrong)
+  }
+}
+
 // Une question peut être impossible à construire selon l'état des notes
 // (pas assez de notes, trop peu de mots-clés) : on réessaie autre chose.
 export function buildQuestion(entries, notes) {

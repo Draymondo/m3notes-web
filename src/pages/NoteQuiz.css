@@ -167,3 +167,49 @@
 .quiz-summary-score strong{font-size:2.6rem;color:var(--text);line-height:1}
 .quiz-summary-meta{margin:0;font-size:.88rem;color:var(--text-secondary)}
 .quiz-summary-actions{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+
+/* ── Mémorisation ── */
+.memory{padding:22px;border-radius:18px;background:var(--surface);border:1px solid var(--border)}
+.memory-flash{display:flex;flex-direction:column;align-items:center;gap:16px;padding:12px 0 4px}
+.memory-flash-count{
+  width:56px;height:56px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--primary);color:#fff;
+  font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;
+}
+.memory-flash-labels{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+
+.memory-chip{
+  display:inline-flex;align-items:center;
+  padding:10px 16px;border-radius:999px;
+  background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-size:.92rem;font-weight:500;cursor:pointer;
+  transition:transform .14s ease,border-color .14s ease,background .14s ease,color .14s ease;
+}
+.memory-chip.is-target{
+  background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:600;cursor:default;
+}
+.memory-options{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-bottom:18px}
+.memory-chip:hover:not(:disabled){transform:translateY(-1px);border-color:var(--primary)}
+.memory-chip:disabled{cursor:default}
+.memory-chip.is-selected{background:var(--primary);border-color:var(--primary);color:#fff}
+.memory-chip.is-correct{border-color:#2e7d32;background:color-mix(in srgb,#2e7d32 16%,var(--surface));color:var(--text)}
+.memory-chip.is-wrong{border-color:#b42318;background:color-mix(in srgb,#b42318 14%,var(--surface));color:var(--text)}
+.memory-chip.is-hidden{opacity:.35}
+
+.memory-actions{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;padding-top:16px;border-top:1px solid var(--border);
+}
+.memory-counter{font-size:.84rem;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+.memory-actions button{
+  border:0;background:var(--primary);color:#fff;
+  padding:11px 26px;border-radius:999px;font-size:.9rem;font-weight:600;cursor:pointer;
+  transition:transform .15s ease,filter .15s ease,opacity .15s ease;
+}
+.memory-actions button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.06)}
+.memory-actions button:disabled{opacity:.45;cursor:not-allowed}
+.memory-unlock{
+  margin:0;padding:9px 14px;border-radius:12px;font-size:.86rem;font-weight:600;
+  background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);
+}

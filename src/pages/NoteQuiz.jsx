@@ -8,8 +8,14 @@ import {
   ROUND_LENGTH,
   QUIZ_MIN_LABELS,
   MEMORY_MIN_LABELS,
+  MEMORY_FLASH_MS,
+  MEMORY_ROUNDS,
+  MEMORY_MAX_PICK,
+  MEMORY_STREAK_TO_LEVEL_UP,
   labelEntries,
-  buildQuestion
+  buildQuestion,
+  buildMemoryRound,
+  scoreMemoryRound
 } from '../utils/quizLogic'
 import './NoteQuiz.css'
 
@@ -179,26 +185,220 @@ function Quiz({ entries, notes, best, onFinish, onQuit }) {
   )
 }
 
+function Memory({ entries, notes, progress, onFinish, onQuit }) {
+  const level = Math.min(MEMORY_MAX_PICK, Math.max(1, progress.memory?.level || 1))
+  const [round, setRound] = useState(() => buildMemoryRound(entries, notes, level))
+  const [phase, setPhase] = useState('flash') // flash | input | feedback | summary
+  const [picked, setPicked] = useState([])
+  const [left, setLeft] = useState(MEMORY_FLASH_MS / 1000)
+  const [score, setScore] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [bestStreak, setBestStreak] = useState(0)
+  const [played, setPlayed] = useState(0)
+  const [result, setResult] = useState(null)
+  const reported = useRef(false)
+
+  // Décompte pendant l'affichage des mots-clés.
+  useEffect(() => {
+    if (phase !== 'flash') return
+    setLeft(MEMORY_FLASH_MS / 1000)
+    const timer = setInterval(() => setLeft(value => Math.max(0, value - 1)), 1000)
+    return () => clearInterval(timer)
+  }, [phase, round])
+
+  // Passage à la saisie une fois le temps écoulé.
+  useEffect(() => {
+    if (phase === 'flash' && left === 0) setPhase('input')
+  }, [phase, left])
+
+  // Enregistre le résultat une seule fois par session.
+  useEffect(() => {
+    if (phase !== 'summary') { reported.current = false; return }
+    if (reported.current) return
+    reported.current = true
+    onFinish({ score, bestStreak, played, level })
+  }, [phase, score, bestStreak, played, level, onFinish])
+
+  const toggle = (key) => {
+    if (phase !== 'input') return
+    setPicked(previous => {
+      if (previous.includes(key)) return previous.filter(item => item !== key)
+      // On ne permet pas de dépasser le nombre de mots-clés attendus.
+      if (previous.length >= round.toPick) return previous
+      return [...previous, key]
+    })
+  }
+
+  const validate = () => {
+    if (picked.length !== round.toPick) return
+    const outcome = scoreMemoryRound(round, picked)
+    setResult(outcome)
+    setScore(previous => previous + outcome.points)
+    const nextStreak = outcome.perfect ? streak + 1 : 0
+    setStreak(nextStreak)
+    if (nextStreak > bestStreak) setBestStreak(nextStreak)
+    setPlayed(previous => previous + 1)
+    setPhase('feedback')
+  }
+
+  const goNext = () => {
+    setPicked([])
+    setResult(null)
+    if (played >= MEMORY_ROUNDS) { setPhase('summary'); return }
+    const next = buildMemoryRound(entries, notes, level)
+    if (!next) { setPhase('summary'); return }
+    setRound(next)
+    setPhase('flash')
+  }
+
+  const replay = () => {
+    const next = buildMemoryRound(entries, notes, level)
+    if (!next) return
+    setRound(next)
+    setPicked([])
+    setResult(null)
+    setLeft(MEMORY_FLASH_MS / 1000)
+    setPhase('flash')
+    setScore(0)
+    setStreak(0)
+    setBestStreak(0)
+    setPlayed(0)
+    reported.current = false
+  }
+
+  if (!round) {
+    return (
+      <div className="noteskills-notice">
+        <strong>Pas assez de matière pour une manche de mémorisation.</strong>
+        <p>Il faut {MEMORY_MIN_LABELS} mots-clés distincts et au moins deux notes pour
+          pouvoir composer des propositions.</p>
+      </div>
+    )
+  }
+
+
+  if (phase === 'summary') {
+    const leveledUp = bestStreak >= MEMORY_STREAK_TO_LEVEL_UP && level < MEMORY_MAX_PICK
+    return (
+      <div className="quiz-summary">
+        <Brain size={34} className="quiz-summary-trophy" />
+        <h2>Mémorisation terminée</h2>
+        <p className="quiz-summary-score"><strong>{score}</strong> point{score > 1 ? 's' : ''}</p>
+        <p className="quiz-summary-meta">
+          {played} manche{played > 1 ? 's' : ''} · meilleure série parfaite : {bestStreak}
+          {level < MEMORY_MAX_PICK && <> · {MEMORY_STREAK_TO_LEVEL_UP} manches parfaites d'affilée débloquent le niveau {level + 1}</>}
+        </p>
+        {leveledUp && <p className="memory-unlock">Niveau {level + 1} débloqué — il faudra retenir {level + 1} mots-clés.</p>}
+        <div className="quiz-summary-actions">
+          <button className="is-primary" onClick={replay}>Rejouer</button>
+          <button onClick={onQuit}>Changer de jeu</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="memory">
+      <div className="quiz-status">
+        <div>
+          <span>Manche {Math.min(played + 1, MEMORY_ROUNDS)} / {MEMORY_ROUNDS} · niveau {level}</span>
+          <strong>{score} point{score > 1 ? 's' : ''}</strong>
+        </div>
+        <div className="quiz-status-right">
+          {streak > 0 && <span className="quiz-streak">Parfait ×{streak}</span>}
+          <span className="quiz-record">Record {progress.memory?.best || 0}</span>
+        </div>
+      </div>
+
+      <p className="quiz-prompt">
+        Note «&nbsp;<strong>{round.title}</strong>&nbsp;» — retiens {round.toPick} mot{round.toPick > 1 ? '-s' : ''}-clé{round.toPick > 1 ? 's' : ''}.
+      </p>
+
+      {phase === 'flash' && (
+        <div className="memory-flash">
+          <div className="memory-flash-count" aria-live="polite">{left}</div>
+          <div className="memory-flash-labels">
+            {round.labels.map(label => <span className="memory-chip is-target" key={label}>{label}</span>)}
+          </div>
+          <p className="quiz-hint">Mémorise, puis l’écran se masquera automatiquement.</p>
+        </div>
+      )}
+
+      {phase === 'input' && (
+        <div className="memory-input">
+          <div className="memory-options">
+            {round.options.map(option => {
+              const selected = picked.includes(option.key)
+              let state = ''
+              if (phase === 'feedback') {
+                if (option.correct) state = 'is-correct'
+                else if (selected) state = 'is-wrong'
+                else state = 'is-hidden'
+              }
+              return (
+                <button
+                  key={option.key}
+                  className={`memory-chip ${selected ? 'is-selected' : ''} ${state}`}
+                  onClick={() => toggle(option.key)}
+                  disabled={phase !== 'input'}
+                >
+                  {option.correct && phase === 'feedback' ? '✓ ' : ''}{option.text}
+                </button>
+              )
+            })}
+          </div>
+          <div className="memory-actions">
+            <span className="memory-counter">{picked.length} / {round.toPick} sélectionné{picked.length > 1 ? 's' : ''}</span>
+            <button className="is-primary" onClick={validate} disabled={picked.length !== round.toPick}>Valider</button>
+          </div>
+          {phase === 'feedback' && result && (
+            <div className={`quiz-feedback ${result.perfect ? 'is-good' : 'is-bad'}`}>
+              <p>
+                {result.perfect
+                  ? 'Parfait, tu as tout retrouvé !'
+                  : <>{result.correct} bon{result.correct > 1 ? 's' : ''}, {result.missed} manqué{result.missed > 1 ? 's' : ''}
+                    {result.wrong > 0 && <>, {result.wrong} en trop</>}.</>}
+              </p>
+              <button className="is-primary" onClick={goNext}>
+                {played >= MEMORY_ROUNDS ? 'Voir le résultat' : 'Manche suivante'}
+              </button>
+            </div>
+          )}
+          {phase === 'input' && <p className="quiz-hint">Coche les {round.toPick} mots-clés de cette note.</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const EMPTY_PROGRESS = {
   quiz: { best: 0, streak: 0, played: 0 },
-  memory: { best: 0, streak: 0 },
+  memory: { best: 0, streak: 0, played: 0, level: 1 },
   typing: { bestWpm: 0, bestAccuracy: 0 }
 }
+
+const emptyProgress = () => JSON.parse(JSON.stringify(EMPTY_PROGRESS))
 
 function loadProgress() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+    const level = Number(saved.memory?.level)
     return {
       quiz: {
         best: Number(saved.quiz?.best) || 0,
         streak: Number(saved.quiz?.streak) || 0,
         played: Number(saved.quiz?.played) || 0
       },
-      memory: { best: Number(saved.memory?.best) || 0, streak: Number(saved.memory?.streak) || 0 },
+      memory: {
+        best: Number(saved.memory?.best) || 0,
+        streak: Number(saved.memory?.streak) || 0,
+        played: Number(saved.memory?.played) || 0,
+        level: Math.min(MEMORY_MAX_PICK, Math.max(1, Number.isFinite(level) && level > 0 ? Math.floor(level) : 1))
+      },
       typing: { bestWpm: Number(saved.typing?.bestWpm) || 0, bestAccuracy: Number(saved.typing?.bestAccuracy) || 0 }
     }
   } catch {
-    return EMPTY_PROGRESS
+    return emptyProgress()
   }
 }
 export default function NoteQuiz() {
@@ -248,6 +448,12 @@ export default function NoteQuiz() {
     () => (enoughLabels ? buildQuestion(entries, notes) !== null : false),
     [enoughLabels, entries, notes]
   )
+  // Même principe pour la mémorisation, au niveau 1 : vérifie qu'une manche
+  // peut réellement être composée avant d'afficher le jeu.
+  const memoryReady = useMemo(
+    () => (entries.length >= MEMORY_MIN_LABELS && buildMemoryRound(entries, notes, 1) !== null),
+    [entries, notes]
+  )
 
   const saveProgress = useCallback(updater => {
     setProgress(previous => {
@@ -266,6 +472,21 @@ export default function NoteQuiz() {
         played: previous.quiz.played + 1
       }
     }))
+  }, [saveProgress])
+
+  const recordMemory = useCallback(({ score, bestStreak, played, level }) => {
+    saveProgress(previous => {
+      const leveledUp = bestStreak >= MEMORY_STREAK_TO_LEVEL_UP && level < MEMORY_MAX_PICK
+      return {
+        ...previous,
+        memory: {
+          best: Math.max(previous.memory.best, score),
+          streak: Math.max(previous.memory.streak, bestStreak),
+          played: previous.memory.played + played,
+          level: leveledUp ? level + 1 : previous.memory.level
+        }
+      }
+    })
   }, [saveProgress])
 
   return (
@@ -350,13 +571,31 @@ export default function NoteQuiz() {
               </div>
             ))}
 
-            {mode === 'memory' && (
+            {mode === 'memory' && (memoryReady ? (
+              <Memory
+                key={`memory-${entries.length}-${notes.length}-${progress.memory?.level || 1}`}
+                entries={entries}
+                notes={notes}
+                progress={progress}
+                onFinish={recordMemory}
+                onQuit={() => navigate('/')}
+              />
+            ) : (
               <div className="noteskills-notice">
-                <strong>Mémorisation — en préparation.</strong>
-                <p>Une note s’affiche avec ses mots-clés, l’écran se masque, et tu dois retrouver
-                  les bons. Il faudra {MEMORY_MIN_LABELS} mots-clés distincts pour y jouer.</p>
+                <strong>
+                  {entries.length >= MEMORY_MIN_LABELS
+                    ? 'Il te faut au moins deux notes avec des mots-clés.'
+                    : `Il te faut au moins ${MEMORY_MIN_LABELS} mots-clés distincts.`}
+                </strong>
+                <p>
+                  {entries.length >= MEMORY_MIN_LABELS
+                    ? 'La mémorisation compare les mots-clés de tes notes entre elles : ajoute une deuxième note étiquetée pour pouvoir jouer.'
+                    : <>Tu en as {entries.length} pour l’instant. Retrouve le jeu du Quiz
+                      pour savoir comment en ajouter.</>}
+                </p>
+                <button className="is-primary" onClick={() => setMode('quiz')}>Aller au Quiz</button>
               </div>
-            )}
+            ))}
 
             {mode === 'typing' && (
               <div className="noteskills-notice">

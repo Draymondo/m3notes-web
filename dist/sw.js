@@ -1,8 +1,8 @@
 // La version de cache et la liste de précache ci-dessous sont injectées au
 // build par le plugin sw-precache de vite.config.js, à partir du contenu
 // réel de dist/.
-const CACHE_NAME = 'm3notes-shell-a7fddc76c6'
-const PRECACHE_URLS = ["/m3notes-web/","/m3notes-web/apple-touch-icon.png","/m3notes-web/assets/firebase-auth-DVXL6VfL.js","/m3notes-web/assets/firebase-core-BKVkiGoc.js","/m3notes-web/assets/firebase-firestore-InLXtzGG.js","/m3notes-web/assets/icons-CpS3bGs4.js","/m3notes-web/assets/index--vf0G1TQ.css","/m3notes-web/assets/index-COCM4VtV.js","/m3notes-web/assets/react-6n7iaA6z.js","/m3notes-web/favicon.svg","/m3notes-web/icon-192.png","/m3notes-web/icon-512.png","/m3notes-web/index.html","/m3notes-web/manifest.json"]
+const CACHE_NAME = 'm3notes-shell-50e26cc1f6'
+const PRECACHE_URLS = ["/m3notes-web/","/m3notes-web/apple-touch-icon.png","/m3notes-web/assets/firebase-auth-DVXL6VfL.js","/m3notes-web/assets/firebase-core-BKVkiGoc.js","/m3notes-web/assets/firebase-firestore-InLXtzGG.js","/m3notes-web/assets/icons-CpS3bGs4.js","/m3notes-web/assets/index-Bg66nvjD.js","/m3notes-web/assets/index-DiVhmXy2.css","/m3notes-web/assets/react-6n7iaA6z.js","/m3notes-web/favicon.svg","/m3notes-web/icon-192.png","/m3notes-web/icon-512.png","/m3notes-web/index.html","/m3notes-web/manifest.json"]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
