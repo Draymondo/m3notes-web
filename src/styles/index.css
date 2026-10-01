@@ -1,10 +1,16 @@
 :root {
-  --bg: #f3f1ed;
-  --surface: #faf9f6;
-  --text: #252525;
-  --text-secondary: #66635f;
+  /* Clair — papier chaud et peu lumineux.
+     Objectif : limiter l'éblouissement et la fatigue oculaire.
+     - aucun blanc pur : on descend en luminance (fond ~ #eeeae1)
+     - dominante chaude (peu de bleu, moins de fatigue en lecture longue)
+     - encre douce (#2e2a24) au lieu d'un noir absolu : évite l'auréole
+       de netteté (halation) autour des caractères. */
+  --bg: #eeeae1;
+  --surface: #f6f3ec;
+  --text: #2e2a24;
+  --text-secondary: #6b655b;
   --primary: #4f6f9f;
-  --border: #dedbd5;
+  --border: #ddd8cc;
   --shadow: 0 1px 3px rgba(45,40,32,0.07), 0 6px 18px rgba(45,40,32,0.045);
   --radius: 12px;
   --fab-size: 56px;
@@ -134,7 +140,9 @@ input, textarea {
 }
 
 /* Note colors */
-.note-default { background: #fdfcf9; }
+/* Note par défaut : on évite le quasi-blanc (source d'éblouissement),
+   elle reprend la surface douce du thème. */
+.note-default { background: var(--surface); }
 .note-red { background: #f2c9c3; }
 .note-orange { background: #f3d3a0; }
 .note-yellow { background: #f2e7ad; }
