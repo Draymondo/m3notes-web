@@ -1,0 +1,8 @@
+# Artefacts locaux (ne jamais committer)
+.firebase/
+.DS_Store
+*.local
+
+# Note : node_modules/ est volontairement suivi par ce dépôt (convention
+# existante). Seuls les vrais fichiers de build Vite dans .vite sont
+# bruyants, pas les paquets installés.
