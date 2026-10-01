@@ -8,7 +8,7 @@ import LoginPage from './pages/LoginPage'
 import VaultPage from './pages/VaultPage'
 import VaultNotePage from './pages/VaultNotePage'
 import ExportPage from './pages/ExportPage'
-import NoteShift from './pages/NoteShift'
+import NoteQuiz from './pages/NoteQuiz'
 import VaultTransferAction from './components/VaultTransferAction'
 
 function RequireAuth({ children }) {
@@ -30,9 +30,10 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <VaultProvider>
+          {/* La route /game est protégée : le jeu se construit sur les notes du compte. */}
           <Routes>
             <Route path="/login" element={<RedirectIfAuth><LoginPage /></RedirectIfAuth>} />
-            <Route path="/game" element={<NoteShift />} />
+            <Route path="/game" element={<RequireAuth><NoteQuiz /></RequireAuth>} />
             <Route path="/" element={<RequireAuth><HomePage /></RequireAuth>} />
             <Route path="/note/:id" element={<RequireAuth><NotePage /></RequireAuth>} />
             <Route path="/vault" element={<RequireAuth><VaultPage /></RequireAuth>} />

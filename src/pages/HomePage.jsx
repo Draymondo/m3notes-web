@@ -386,7 +386,7 @@ export default function HomePage() {
             >
               <Trash2 size={20} />
             </button>
-            <button onClick={() => navigate('/game')} title="NoteShift"><Gamepad2 size={20} /></button>
+            <button onClick={() => navigate('/game')} title="NoteSkills — jeu sur tes notes"><Gamepad2 size={20} /></button>
             <button onClick={() => navigate('/vault')} title="Coffre">
               <Lock size={20} />
             </button>
