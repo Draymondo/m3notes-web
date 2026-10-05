@@ -8,6 +8,7 @@ import {
   updateVaultAttachments,
   uploadVaultAttachment
 } from '../services/vault'
+import AttachmentBrowser from './AttachmentBrowser'
 import './VaultAttachments.css'
 
 function formatSize(bytes) {
@@ -183,8 +184,9 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
       </div>
 
       {attachments.length > 0 && (
-        <div className="vault-attachment-list">
-          {attachments.map(file => (
+        <AttachmentBrowser
+          attachments={attachments}
+          renderFile={file => (
             <div className="vault-attachment-item" key={file.driveFileId}>
               <button
                 type="button"
@@ -201,7 +203,6 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
                   </span>
                 </span>
               </button>
-
               <button
                 type="button"
                 className="vault-attachment-download"
@@ -211,7 +212,6 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
               >
                 <Download size={17} />
               </button>
-
               <button
                 type="button"
                 className="vault-attachment-delete"
@@ -222,7 +222,8 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
                 <Trash2 size={17} />
               </button>
             </div>
-          ))}
+          )}
+        />         ))}
         </div>
       )}
 
