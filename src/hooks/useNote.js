@@ -143,7 +143,8 @@ export function useNote() {
           mimeType: uploaded.mimeType || file.type || 'application/octet-stream',
           size: Number(uploaded.size || file.size || 0),
           webViewLink: uploaded.webViewLink || `https://drive.google.com/file/d/${uploaded.id}/view`,
-          createdTime: uploaded.createdTime || new Date().toISOString()
+          createdTime: uploaded.createdTime || new Date().toISOString(),
+          ...(file.webkitRelativePath ? { relativePath: file.webkitRelativePath } : {})
         }
         const next = [...attachments, attachment]
         try {
