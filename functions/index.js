@@ -359,20 +359,17 @@ function createM3NotesMcpServer(userId) {
   return server
 }
 
-const mcpHandler = createMcpHandler((requestInfo) => {
-  const config = getConfig()
-  const path = new URL(requestInfo.requestInfo.url).pathname
-  const expected = '/m3notesMcp/' + config.mcpPathToken
-  if (path !== expected) throw new Error('Unauthorized')
-  return createM3NotesMcpServer(config.userId)
-})
+const mcpHandler = createMcpHandler(
+  () => createM3NotesMcpServer(getConfig().userId),
+  { responseMode: 'json' }
+)
 
 export const m3notesMcp = onRequest(
   { region: 'europe-west1', secrets: [aiConfig], timeoutSeconds: 60, cors: false },
   async (req, res) => {
     try {
       const config = getConfig()
-      const expectedPath = '/m3notesMcp/' + config.mcpPathToken
+      const expectedPath = '/' + config.mcpPathToken
       if (req.path !== expectedPath) return res.status(404).send('Not found')
       if (req.method !== 'POST') return res.status(405).set('Allow', 'POST').send('Method Not Allowed')
 
