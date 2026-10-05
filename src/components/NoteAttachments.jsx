@@ -15,17 +15,21 @@ function fileIcon(mimeType) {
 
 export default function NoteAttachments({ attachments, onAdd, onRemove, disabled, editable = true }) {
   const inputRef = useRef(null)
+  const folderInputRef = useRef(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [authorizing, setAuthorizing] = useState(false)
   const [authError, setAuthError] = useState('')
   const [downloadingId, setDownloadingId] = useState('')
 
-  const chooseFiles = async () => {
+  const chooseFiles = async (mode = 'file') => {
     setAuthError('')
     if (disabled || authorizing) return
     try {
       setAuthorizing(true)
       await getDriveAccessToken()
-      inputRef.current?.click()
+      setPickerOpen(false)
+      if (mode === 'folder') folderInputRef.current?.click()
+      else inputRef.current?.click()
     } catch (err) {
       console.error('Drive authorization error:', err)
       setAuthError(err.message || 'Autorisation Google Drive impossible.')
@@ -66,7 +70,7 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
         <button
           type="button"
           className="attachments-empty-action"
-          onClick={chooseFiles}
+          onClick={() => chooseFiles('file')}
           disabled={disabled || authorizing}
           aria-busy={authorizing}
         >
@@ -82,15 +86,23 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
               <span className="attachments-count">{attachments.length}</span>
             </div>
             {editable && (
-              <button
-                type="button"
-                className="attachments-add"
-                onClick={chooseFiles}
+              <div className="attachments-add-group">
+                <button
+                  type="button"
+                  className="attachments-add"
+                  onClick={() => setPickerOpen(open => !open)}
                 disabled={disabled || authorizing}
                 aria-busy={authorizing}
-              >
-                {authorizing ? 'Connexion…' : '+ Ajouter'}
-              </button>
+                >
+                  {authorizing ? 'Connexion…' : '+ Ajouter'}
+                </button>
+                {pickerOpen && !authorizing && (
+                  <div className="attachments-add-menu" role="menu">
+                    <button type="button" role="menuitem" onClick={() => chooseFiles('file')}>📄 Ajouter des fichiers</button>
+                    <button type="button" role="menuitem" onClick={() => chooseFiles('folder')}>📁 Ajouter un dossier</button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -151,6 +163,7 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
       {authError && <p className="attachments-error" role="alert">{authError}</p>}
 
       {editable && (
+        <>
         <input
           ref={inputRef}
           type="file"
@@ -163,6 +176,19 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
             e.target.value = ''
           }}
         />
+        <input
+          ref={folderInputRef}
+          type="file"
+          multiple
+          webkitdirectory="true"
+          hidden
+          onChange={e => {
+            const files = Array.from(e.target.files || [])
+            if (files.length) onAdd(files)
+            e.target.value = ''
+          }}
+        />
+        </>
       )}
     </section>
   )
