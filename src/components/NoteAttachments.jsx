@@ -67,16 +67,24 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
   return (
     <section className={`note-attachments ${attachments.length ? 'has-attachments' : ''}`} aria-label="Pièces jointes">
       {attachments.length === 0 ? (
-        <button
-          type="button"
-          className="attachments-empty-action"
-          onClick={() => chooseFiles('file')}
-          disabled={disabled || authorizing}
-          aria-busy={authorizing}
-        >
-          <Paperclip size={18} />
-          <span>{authorizing ? 'Connexion…' : 'Ajouter une pièce jointe'}</span>
-        </button>
+        <div className="attachments-empty-group">
+          <button
+            type="button"
+            className="attachments-empty-action"
+            onClick={() => setPickerOpen(open => !open)}
+            disabled={disabled || authorizing}
+            aria-busy={authorizing}
+          >
+            <Paperclip size={18} />
+            <span>{authorizing ? 'Connexion…' : 'Ajouter une pièce jointe'}</span>
+          </button>
+          {pickerOpen && !authorizing && (
+            <div className="attachments-add-menu attachments-empty-menu" role="menu">
+              <button type="button" role="menuitem" onClick={() => chooseFiles('file')}>📄 Ajouter des fichiers</button>
+              <button type="button" role="menuitem" onClick={() => chooseFiles('folder')}>📁 Ajouter un dossier</button>
+            </div>
+          )}
+        </div>
       ) : (
         <>
           <div className="attachments-header">
@@ -91,8 +99,8 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
                   type="button"
                   className="attachments-add"
                   onClick={() => setPickerOpen(open => !open)}
-                disabled={disabled || authorizing}
-                aria-busy={authorizing}
+                  disabled={disabled || authorizing}
+                  aria-busy={authorizing}
                 >
                   {authorizing ? 'Connexion…' : '+ Ajouter'}
                 </button>
