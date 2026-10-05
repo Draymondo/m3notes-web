@@ -369,6 +369,9 @@ export const m3notesMcp = onRequest(
   async (req, res) => {
     try {
       const config = getConfig()
+      if (!safeEqual(getBearerToken(req), config.token)) {
+        return res.status(401).send('Unauthorized')
+      }
       const expectedPath = '/' + config.mcpPathToken
       if (req.path !== expectedPath) return res.status(404).send('Not found')
       if (req.method !== 'POST') return res.status(405).set('Allow', 'POST').send('Method Not Allowed')
