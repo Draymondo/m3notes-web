@@ -1,4 +1,5 @@
 import { onRequest } from 'firebase-functions/v2/https'
+import { timingSafeEqual } from 'node:crypto'
 import { defineJsonSecret } from 'firebase-functions/params'
 import { initializeApp } from 'firebase-admin/app'
 import { getFirestore, Timestamp } from 'firebase-admin/firestore'
@@ -28,10 +29,11 @@ function getConfig() {
 }
 
 function safeEqual(a, b) {
-  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false
-  let result = 0
-  for (let i = 0; i < a.length; i += 1) result |= a.charCodeAt(i) ^ b.charCodeAt(i)
-  return result === 0
+  if (typeof a !== 'string' || typeof b !== 'string') return false
+  const left = Buffer.from(a, 'utf8')
+  const right = Buffer.from(b, 'utf8')
+  if (left.length !== right.length) return false
+  return timingSafeEqual(left, right)
 }
 
 function getBearerToken(req) {
@@ -164,49 +166,79 @@ async function createNormalNote(userId, input = {}) {
 }
 
 async function updateNormalNote(userId, noteId, input = {}) {
-  const current = await getNormalNote(userId, noteId)
-  if (!current) {
+  if (!noteId || typeof noteId !== 'string' || noteId.length > 200 || noteId.includes('/')) {
     const error = new Error('Note introuvable ou inaccessible.')
     error.status = 404
     throw error
   }
 
-  const patch = {}
-  if (Object.prototype.hasOwnProperty.call(input, 'title')) patch.title = normalizeText(input.title, MAX_TITLE_LENGTH)
-  if (Object.prototype.hasOwnProperty.call(input, 'content')) patch.content = normalizeText(input.content, MAX_CONTENT_LENGTH)
-  if (Object.prototype.hasOwnProperty.call(input, 'color') && typeof input.color === 'string') patch.color = input.color
-  if (Object.prototype.hasOwnProperty.call(input, 'labels') && Array.isArray(input.labels)) {
-    patch.labels = input.labels.filter(label => typeof label === 'string').map(label => label.trim()).filter(Boolean).slice(0, 50)
-  }
-  if (Object.prototype.hasOwnProperty.call(input, 'isPinned')) patch.isPinned = input.isPinned === true
-  if (Object.prototype.hasOwnProperty.call(input, 'isFavorite')) patch.isFavorite = input.isFavorite === true
-  if (Object.prototype.hasOwnProperty.call(input, 'isArchived')) patch.isArchived = input.isArchived === true
-  if (Object.prototype.hasOwnProperty.call(input, 'isDeleted')) patch.isDeleted = input.isDeleted === true
-  if (Object.prototype.hasOwnProperty.call(input, 'isChecklist')) patch.isChecklist = input.isChecklist === true
-  if (Object.prototype.hasOwnProperty.call(input, 'checklist') && Array.isArray(input.checklist)) patch.checklist = input.checklist.slice(0, 500)
-
-  const historySnapshot = {
-    title: current.data.title || '',
-    content: current.data.content || '',
-    color: current.data.color || 'DEFAULT',
-    isPinned: current.data.isPinned === true,
-    isFavorite: current.data.isFavorite === true,
-    isArchived: current.data.isArchived === true,
-    isChecklist: current.data.isChecklist === true,
-    checklist: Array.isArray(current.data.checklist) ? current.data.checklist : [],
-    labels: Array.isArray(current.data.labels) ? current.data.labels : [],
-    savedAt: Timestamp.now()
+  if (Object.prototype.hasOwnProperty.call(input, 'isDeleted')) {
+    const error = new Error('La suppression de notes n’est pas disponible via l’IA.')
+    error.status = 400
+    throw error
   }
 
   const noteRef = db.collection('notes').doc(noteId)
-  const historyRef = noteRef.collection('history').doc()
+  let updatedData = null
+
   await db.runTransaction(async transaction => {
+    const currentSnap = await transaction.get(noteRef)
+    if (!currentSnap.exists) {
+      const error = new Error('Note introuvable ou inaccessible.')
+      error.status = 404
+      throw error
+    }
+
+    const current = currentSnap.data()
+
+    // Re-check ownership and vault status inside the transaction to prevent
+    // an update if the note changes classification between read and commit.
+    if (current?.userId !== userId || !isNormalNote(current)) {
+      const error = new Error('Note introuvable ou inaccessible.')
+      error.status = 404
+      throw error
+    }
+
+    const patch = {}
+    if (Object.prototype.hasOwnProperty.call(input, 'title')) patch.title = normalizeText(input.title, MAX_TITLE_LENGTH)
+    if (Object.prototype.hasOwnProperty.call(input, 'content')) patch.content = normalizeText(input.content, MAX_CONTENT_LENGTH)
+    if (Object.prototype.hasOwnProperty.call(input, 'color') && typeof input.color === 'string') patch.color = input.color.slice(0, 100)
+    if (Object.prototype.hasOwnProperty.call(input, 'labels') && Array.isArray(input.labels)) {
+      patch.labels = input.labels.filter(label => typeof label === 'string').map(label => label.trim()).filter(Boolean).slice(0, 50)
+    }
+    if (Object.prototype.hasOwnProperty.call(input, 'isPinned')) patch.isPinned = input.isPinned === true
+    if (Object.prototype.hasOwnProperty.call(input, 'isFavorite')) patch.isFavorite = input.isFavorite === true
+    if (Object.prototype.hasOwnProperty.call(input, 'isArchived')) patch.isArchived = input.isArchived === true
+    if (Object.prototype.hasOwnProperty.call(input, 'isChecklist')) patch.isChecklist = input.isChecklist === true
+    if (Object.prototype.hasOwnProperty.call(input, 'checklist') && Array.isArray(input.checklist)) patch.checklist = input.checklist.slice(0, 500)
+
+    if (Object.keys(patch).length === 0) {
+      updatedData = current
+      return
+    }
+
+    const historySnapshot = {
+      title: current.title || '',
+      content: current.content || '',
+      color: current.color || 'DEFAULT',
+      isPinned: current.isPinned === true,
+      isFavorite: current.isFavorite === true,
+      isArchived: current.isArchived === true,
+      isChecklist: current.isChecklist === true,
+      checklist: Array.isArray(current.checklist) ? current.checklist : [],
+      labels: Array.isArray(current.labels) ? current.labels : [],
+      savedAt: Timestamp.now()
+    }
+
+    const historyRef = noteRef.collection('history').doc()
+    const updatedAt = Timestamp.now()
+
     transaction.set(historyRef, historySnapshot)
-    transaction.update(noteRef, { ...patch, updatedAt: Timestamp.now() })
+    transaction.update(noteRef, { ...patch, updatedAt })
+    updatedData = { ...current, ...patch, updatedAt }
   })
 
-  const updated = await noteRef.get()
-  return publicNote(noteId, updated.data())
+  return publicNote(noteId, updatedData)
 }
 
 function json(res, status, body) {
@@ -346,7 +378,6 @@ function createM3NotesMcpServer(userId) {
         isPinned: z.boolean().optional(),
         isFavorite: z.boolean().optional(),
         isArchived: z.boolean().optional(),
-        isDeleted: z.boolean().optional(),
         isChecklist: z.boolean().optional(),
         checklist: z.array(z.record(z.string(), z.unknown())).max(500).optional()
       })
@@ -392,7 +423,9 @@ export const m3notesMcp = onRequest(
       return res.send(await response.text())
     } catch (error) {
       console.error('M3Notes MCP error:', error)
-      return res.status(401).send('Unauthorized')
+      const status = Number(error?.status)
+      if (status === 401) return res.status(401).send('Unauthorized')
+      return res.status(500).send('Internal Server Error')
     }
   }
 )
