@@ -1,0 +1,137 @@
+.attachment-browser {
+  min-width: 0;
+}
+
+.attachment-browser-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 2px 0 8px;
+}
+
+.attachment-browser-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.attachment-browser-back:hover {
+  background: rgba(127,127,127,.12);
+}
+
+.attachment-browser-path {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: .85rem;
+}
+
+.attachment-browser-path-part {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.attachment-browser-path-part button {
+  border: 0;
+  padding: 3px 4px;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-browser-path-part button:hover {
+  background: rgba(127,127,127,.12);
+  color: inherit;
+}
+
+.attachment-browser-list {
+  display: grid;
+  gap: 6px;
+}
+
+.attachment-folder-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 10px;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.attachment-folder-item:hover {
+  background: rgba(127,127,127,.055);
+}
+
+.attachment-folder-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(127,127,127,.1);
+  color: var(--primary);
+}
+
+.attachment-folder-info {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.attachment-folder-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-folder-meta {
+  color: var(--text-secondary);
+  font-size: .8rem;
+}
+
+.attachment-folder-chevron {
+  flex: 0 0 auto;
+  opacity: .5;
+}
+
+.attachment-browser-empty {
+  padding: 12px 4px;
+  color: var(--text-secondary);
+  font-size: .85rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attachment-folder-item,
+  .attachment-browser-back,
+  .attachment-browser-path-part button {
+    transition: none;
+  }
+}
