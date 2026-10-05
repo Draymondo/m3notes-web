@@ -223,3 +223,38 @@
     animation: none;
   }
 }
+
+
+.vault-attachments-add-group {
+  position: relative;
+}
+
+.vault-attachments-add-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 210px;
+  padding: 6px;
+  border: 1px solid rgba(127,127,127,0.22);
+  border-radius: 10px;
+  background: var(--surface, Canvas);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.16);
+}
+
+.vault-attachments-add-menu button {
+  border: 0;
+  border-radius: 7px;
+  padding: 9px 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.vault-attachments-add-menu button:hover {
+  background: rgba(127,127,127,0.12);
+}

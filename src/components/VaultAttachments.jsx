@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Download, FileText, Image, Paperclip, Trash2 } from 'lucide-react'
 import { getDriveAccessToken } from '../services/drive'
 import {
@@ -27,15 +27,20 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
   const [openingId, setOpeningId] = useState('')
   const [downloadingId, setDownloadingId] = useState('')
   const [error, setError] = useState('')
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const fileInputRef = useRef(null)
+  const folderInputRef = useRef(null)
 
-  const chooseFiles = async () => {
+  const chooseFiles = async (mode = 'file') => {
     if (!vaultKey || !noteId || busy || authorizing) return
     setError('')
     setAuthorizing(true)
     try {
       const token = await getDriveAccessToken()
       setDriveToken(token)
-      document.getElementById(`vault-file-input-${noteId}`)?.click()
+      setPickerOpen(false)
+      if (mode === 'folder') folderInputRef.current?.click()
+      else fileInputRef.current?.click()
     } catch (err) {
       console.error('Vault Drive authorization error:', err)
       setError(err.message || 'Autorisation Google Drive impossible.')
@@ -132,19 +137,41 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
           {attachments.length > 0 && <span className="vault-attachments-count">{attachments.length}</span>}
         </div>
 
+        <div className="vault-attachments-add-group">
         <button
           type="button"
           className="vault-attachments-add"
-          onClick={chooseFiles}
+          onClick={() => setPickerOpen(open => !open)}
           disabled={busy || disabled || authorizing}
           aria-busy={authorizing}
         >
           {authorizing ? 'Connexion…' : busy ? '…' : '+ Ajouter'}
         </button>
+        {pickerOpen && !authorizing && (
+          <div className="vault-attachments-add-menu" role="menu">
+            <button type="button" role="menuitem" onClick={() => chooseFiles('file')}>📄 Ajouter des fichiers</button>
+            <button type="button" role="menuitem" onClick={() => chooseFiles('folder')}>📁 Ajouter un dossier</button>
+          </div>
+        )}
+        </div>
         <input
+          ref={fileInputRef}
           id={`vault-file-input-${noteId}`}
           type="file"
           multiple
+          hidden
+          disabled={busy || disabled}
+          onChange={e => {
+            const files = Array.from(e.target.files || [])
+            if (files.length) addFiles(files)
+            e.target.value = ''
+          }}
+        />
+        <input
+          ref={folderInputRef}
+          type="file"
+          multiple
+          webkitdirectory="true"
           hidden
           disabled={busy || disabled}
           onChange={e => {

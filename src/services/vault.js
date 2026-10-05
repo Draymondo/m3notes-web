@@ -197,7 +197,8 @@ export async function uploadVaultAttachment(file, key, noteId, accessToken) {
     name: file.name,
     mimeType: file.type || 'application/octet-stream',
     size: file.size,
-    driveFileId: driveFile.id
+    driveFileId: driveFile.id,
+    ...(file.webkitRelativePath ? { relativePath: file.webkitRelativePath } : {})
   }
 }
 
