@@ -31,7 +31,7 @@ REST authentication uses `Authorization: Bearer <token>`.
 
 The `m3notesMcp` function exposes the MCP endpoint at:
 
-`/m3notesMcp/<MCP_PATH_TOKEN>`
+`https://<region>-<project>.cloudfunctions.net/m3notesMcp/<MCP_PATH_TOKEN>`
 
 The path token is deliberately separate from the REST bearer token so the MCP URL can be configured as a no-auth custom app endpoint without placing a bearer secret in ChatGPT configuration.
 
