@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, ChevronRight, Folder, FolderOpen } from 'lucide-react'
+import './AttachmentBrowser.css'
 
 function buildTree(attachments) {
   const root = { folders: new Map(), files: [] }
