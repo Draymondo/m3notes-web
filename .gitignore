@@ -2,6 +2,9 @@
 .firebase/
 .DS_Store
 *.local
+functions/.env*
+!functions/.env.example
+**/service-account*.json
 
 # Note : node_modules/ est volontairement suivi par ce dépôt (convention
 # existante). Seuls les vrais fichiers de build Vite dans .vite sont
