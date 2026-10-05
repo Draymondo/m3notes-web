@@ -223,9 +223,7 @@ export default function VaultAttachments({ attachments, vaultKey, noteId, onChan
               </button>
             </div>
           )}
-        />         ))}
-        </div>
-      )}
+        />
 
       {error && <p className="vault-attachment-error" role="alert">{error}</p>}
     </section>
