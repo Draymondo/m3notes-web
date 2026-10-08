@@ -150,6 +150,8 @@ export default function NoteAttachments({ attachments, onAdd, onRemove, disabled
               </div>
             )}
           />
+        </>
+      )}
 
       {authError && <p className="attachments-error" role="alert">{authError}</p>}
 
