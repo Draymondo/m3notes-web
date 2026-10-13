@@ -7,6 +7,16 @@ import { createVaultNote } from '../services/vault'
 import { permanentlyDeleteNote } from '../services/notes'
 import './VaultTransferAction.css'
 
+const getUnsupportedTransferContent = (note) => {
+  const unsupported = []
+  if (note.attachments?.length) unsupported.push('pièces jointes')
+  if (note.imageUrls?.length) unsupported.push('images')
+  if (note.isChecklist || note.checklist?.length) unsupported.push('checklist')
+  if (note.labels?.length) unsupported.push('labels')
+  if (note.color && note.color !== 'DEFAULT') unsupported.push('couleur')
+  return unsupported
+}
+
 export default function VaultTransferAction() {
   const { user } = useAuth()
   const { vaultKey } = useVault()
@@ -32,6 +42,11 @@ export default function VaultTransferAction() {
 
   const transfer = async () => {
     if (!note || !user) return
+    const unsupported = getUnsupportedTransferContent(note)
+    if (unsupported.length) {
+      setError(`Transfert ignoré : ${unsupported.join(', ')}. Pièces jointes, images, checklists, labels et couleurs non pris en charge pour l’instant.`)
+      return
+    }
     if (!vaultKey) {
       navigate('/vault', { state: { transferNote: note } })
       setNote(null)

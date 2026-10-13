@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Lock, LockKeyhole, Pin, Plus, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -8,6 +8,16 @@ import { permanentlyDeleteNote } from '../services/notes'
 import ConfirmDialog from '../components/ConfirmDialog'
 import './VaultPage.css'
 import { formatNoteDate } from '../utils/noteDate'
+
+const getUnsupportedTransferContent = (note) => {
+  const unsupported = []
+  if (note.attachments?.length) unsupported.push('pièces jointes')
+  if (note.imageUrls?.length) unsupported.push('images')
+  if (note.isChecklist || note.checklist?.length) unsupported.push('checklist')
+  if (note.labels?.length) unsupported.push('labels')
+  if (note.color && note.color !== 'DEFAULT') unsupported.push('couleur')
+  return unsupported
+}
 
 export default function VaultPage() {
   const { user } = useAuth()
@@ -26,6 +36,7 @@ export default function VaultPage() {
   const [decrypted, setDecrypted] = useState([])
   const [confirmDeleteNote, setConfirmDeleteNote] = useState(null)
   const [subscriptionError, setSubscriptionError] = useState('')
+  const transferStartedRef = useRef(false)
 
   const transferNotes = location.state?.transferNotes || (location.state?.transferNote ? [location.state.transferNote] : [])
 
@@ -64,29 +75,39 @@ export default function VaultPage() {
   }, [rawNotes, vaultKey])
 
   useEffect(() => {
-    if (!vaultKey || transferNotes.length === 0 || transferBusy) return
-    let cancelled = false
+    if (!vaultKey || !user || transferNotes.length === 0 || transferStartedRef.current) return
+    transferStartedRef.current = true
     setTransferBusy(true)
     setError('')
+    const skippedNotes = transferNotes
+      .map(note => ({ note, unsupported: getUnsupportedTransferContent(note) }))
+      .filter(({ unsupported }) => unsupported.length > 0)
+    const transferableNotes = transferNotes.filter(note => getUnsupportedTransferContent(note).length === 0)
+
     ;(async () => {
-      try {
-        await Promise.all(transferNotes.map(async note => {
+      const results = await Promise.allSettled(transferableNotes.map(async note => {
           await createVaultNote(user.uid, vaultKey, {
             title: note.title || '',
             content: note.content || ''
           })
           await permanentlyDeleteNote(note.id)
-        }))
-        if (!cancelled) navigate('/vault', { replace: true, state: {} })
-      } catch (err) {
-        console.error('Vault transfer error:', err)
-        if (!cancelled) setError('Impossible de transférer une ou plusieurs notes dans le coffre.')
-      } finally {
-        if (!cancelled) setTransferBusy(false)
+      }))
+      const failedNotes = results.flatMap((result, index) => result.status === 'rejected' ? [transferableNotes[index]] : [])
+      const messages = []
+      if (skippedNotes.length) {
+        const skippedSummary = skippedNotes.map(({ note, unsupported }) => `${note.title || 'Sans titre'} (${unsupported.join(', ')})`).join('; ')
+        messages.push(`Notes ignorées : ${skippedSummary}. Pièces jointes, images, checklists, labels et couleurs non pris en charge pour l’instant.`)
       }
+      if (failedNotes.length) {
+        console.error('Vault transfer errors:', results.filter(result => result.status === 'rejected').map(result => result.reason))
+        const failedSummary = failedNotes.map(note => note.title || 'Sans titre').join(', ')
+        messages.push(`Transfert échoué pour : ${failedSummary}. Les originaux concernés ont été conservés.`)
+      }
+      setError(messages.join(' '))
+      setTransferBusy(false)
+      navigate('/vault', { replace: true, state: {} })
     })()
-    return () => { cancelled = true }
-  }, [vaultKey, transferNotes, transferBusy, user, navigate])
+  }, [vaultKey, transferNotes, user, navigate])
 
   const handleSetup = async () => {
     setError('')
@@ -208,6 +229,7 @@ export default function VaultPage() {
 
       <main className="vault-notes-area">
         {subscriptionError && <p className="vault-error" role="alert">{subscriptionError}</p>}
+        {error && <p className="vault-error" role="alert">{error}</p>}
         {transferBusy && <p className="vault-transfer-status">Transfert de {transferNotes.length > 1 ? `${transferNotes.length} notes` : 'la note'} dans le coffre…</p>}
         {decrypted.length === 0 ? (
           <p className="empty">Coffre vide</p>
