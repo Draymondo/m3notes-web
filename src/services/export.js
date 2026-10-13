@@ -66,6 +66,16 @@ export function exportJson(notes, filename = 'm3notes-sauvegarde') {
   downloadBlob(blob, `${safeFilename(filename)}.json`)
 }
 
+export function exportVaultHeader(vaultMeta, filename = 'vault-header') {
+  const payload = {
+    format: 'm3notes-vault-header',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    vaultMeta
+  }
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' })
+  downloadBlob(blob, `${safeFilename(filename)}.json`)
+}
 
 export function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer)

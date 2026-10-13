@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext'
 import { useVault } from '../context/VaultContext'
 import { subscribeNotes, createNote, getCompleteBackupData, restoreCompleteBackupData } from '../services/notes'
 import { getDriveAccessToken, listDriveAttachmentFiles, downloadDriveFile } from '../services/drive'
-import { arrayBufferToBase64, exportJson, exportCompleteBackup, exportMarkdown, exportText, exportPdf, parseBackupFile } from '../services/export'
+import { arrayBufferToBase64, exportJson, exportCompleteBackup, exportMarkdown, exportText, exportPdf, exportVaultHeader, parseBackupFile } from '../services/export'
+import { getVaultMeta } from '../services/vault'
 import './ExportPage.css'
 
 export default function ExportPage() {
@@ -18,6 +19,7 @@ export default function ExportPage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [backupBusy, setBackupBusy] = useState(false)
+  const [headerBusy, setHeaderBusy] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -55,6 +57,27 @@ export default function ExportPage() {
       setError('Impossible de générer la sauvegarde complète.')
     } finally {
       setBackupBusy(false)
+    }
+  }
+
+  const handleVaultHeaderExport = async () => {
+    setError('')
+    setMessage('')
+    if (!user || headerBusy) return
+    setHeaderBusy(true)
+    try {
+      const vaultMeta = await getVaultMeta(user.uid)
+      if (!vaultMeta) {
+        setError('Aucun coffre à exporter')
+        return
+      }
+      exportVaultHeader(vaultMeta)
+      setMessage('En-tête du coffre téléchargé.')
+    } catch (err) {
+      console.error('Vault header export error:', err)
+      setError('Impossible de télécharger l’en-tête du coffre.')
+    } finally {
+      setHeaderBusy(false)
     }
   }
 
@@ -112,6 +135,8 @@ export default function ExportPage() {
           </div>
           <button onClick={handleCompleteBackup} disabled={backupBusy}><Download size={19} /> {backupBusy ? 'Préparation…' : 'Sauvegarde complète des données'}</button>
           <p className="export-note">Inclut les données Firestore et les fichiers M3Notes stockés sur Google Drive. Les pièces jointes du coffre restent chiffrées dans la sauvegarde.</p>
+          <button onClick={handleVaultHeaderExport} disabled={headerBusy}><Download size={19} /> {headerBusy ? 'Préparation…' : 'Télécharger l’en-tête du coffre'}</button>
+          <p className="export-note">À ranger avec votre sauvegarde. Avec ce fichier et votre mot de passe, l’outil de déchiffrement peut lire les fichiers .bin seuls.</p>
         </section>
         <section className="export-card">
           <h2>Restaurer une sauvegarde</h2>
