@@ -181,7 +181,13 @@ export default function HomePage() {
         transferNotes: selectedNotes.map(note => ({
           id: note.id,
           title: note.title || '',
-          content: note.content || ''
+          content: note.content || '',
+          attachments: note.attachments || [],
+          isChecklist: !!note.isChecklist,
+          checklist: note.checklist || [],
+          imageUrls: note.imageUrls || [],
+          labels: note.labels || [],
+          color: note.color || 'DEFAULT'
         }))
       }
     })
