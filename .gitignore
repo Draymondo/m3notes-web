@@ -9,3 +9,6 @@ functions/.env*
 # Note : node_modules/ est volontairement suivi par ce dépôt (convention
 # existante). Seuls les vrais fichiers de build Vite dans .vite sont
 # bruyants, pas les paquets installés.
+
+# Journaux de debug locaux (peuvent contenir des jetons)
+*.log
