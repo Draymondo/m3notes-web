@@ -1,51 +1,50 @@
-# M3Notes – Version Web
+# M3Notes (version web)
 
-Clone personnel de Google Keep – version navigateur (React + Vite + Firebase)
+Application de prise de notes inspirée de Google Keep, en React, Vite et Firebase. Elle est déployée sur GitHub Pages : https://draymondo.github.io/m3notes-web/
 
 ## Fonctionnalités
 
-- Authentification email / mot de passe
-- Grille de notes (style Keep, design un peu plus moderne)
-- Création / édition de notes
-- Couleurs
-- Épinglage + Archive
-- Recherche
-- Mode sombre
-- Offline (Firestore persistence)
-- Responsive (mobile + desktop)
+- Connexion par e-mail et mot de passe, ou avec Google
+- Grille de notes : couleurs, étiquettes, listes à cocher, rendu Markdown, épinglage, archivage, recherche
+- Historique des versions d'une note
+- Pièces jointes et dossiers stockés sur le Google Drive de l'utilisateur (accès limité aux fichiers créés par l'application)
+- Coffre chiffré : titre, contenu et pièces jointes sont chiffrés dans le navigateur (AES-GCM, clé dérivée du mot de passe du coffre). Format décrit dans `docs/VAULT_FORMAT.md`
+- Export (JSON, Markdown, texte, PDF) et sauvegarde complète des données avec les fichiers Drive, restaurable depuis l'application
+- NoteSkills : trois modes de jeu (quiz, mémoire, frappe)
+- Mode sombre, installable (PWA)
+- Cache hors ligne Firestore (un seul onglet à la fois)
+- Intégration IA (API REST et serveur MCP) qui n'expose que les notes normales, jamais le coffre : voir `docs/M3NOTES_AI.md`
 
 ## Lancer en local
 
 ```bash
-cd m3notes-web
 npm install
 npm run dev
 ```
 
-## Build pour GitHub Pages
+`npm run verify` construit le site et contrôle le résultat.
 
-```bash
-npm run build
-```
+## Déploiement
 
-Le dossier `dist/` peut être déployé sur GitHub Pages.
+Chaque envoi sur la branche `main` déclenche `.github/workflows/deploy.yml` : `npm ci`, `npm run build`, puis publication sur GitHub Pages.
 
 ## Firebase
 
-Utilise le même projet Firebase que l’app Android (`m3notes-9712f`).
-
-N’oublie pas d’activer :
-- Authentication → Email/Password
-- Firestore Database
+L'application utilise le projet Firebase `m3notes-9712f`, partagé avec d'autres applications. À activer : Authentication (e-mail/mot de passe et Google) et Firestore. Les règles Firestore en production sont gérées dans la console Firebase : compare-les avec `firestore.rules` avant tout déploiement.
 
 ## Structure
 
 ```
 src/
-├── components/   NoteCard
-├── context/      Auth + Theme
-├── pages/        Login, Home, Note
-├── services/     notes.js
-├── styles/
+├── components/   cartes, éditeurs (listes, étiquettes, couleurs), pièces jointes, coffre
+├── context/      authentification, thème, coffre
+├── hooks/
+├── pages/        connexion, accueil, note, coffre, export, NoteSkills
+├── services/     notes, coffre (chiffrement), export, Drive
+├── utils/
 └── firebase.js
+functions/        API IA (REST) et serveur MCP (Cloud Functions)
+docs/             format du coffre, intégration IA
+public/           manifeste PWA, service worker, icônes
+scripts/          contrôle du build
 ```
