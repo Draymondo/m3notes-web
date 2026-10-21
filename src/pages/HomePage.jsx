@@ -54,6 +54,16 @@ export default function HomePage() {
     return unsub
   }, [user, viewMode])
 
+    // Reprise d'un partage reçu alors que l'utilisateur n'était pas connecté
+  // (voir RequireAuthForShare dans App.jsx).
+  useEffect(() => {
+    const pendingShare = sessionStorage.getItem('m3notes.pendingShare')
+    if (!pendingShare) return
+    sessionStorage.removeItem('m3notes.pendingShare')
+    navigate(`/share${pendingShare}`, { replace: true })
+  }, [navigate])
+
+
   useEffect(() => {
     if (restoredScrollRef.current || loading) return
     restoredScrollRef.current = true
