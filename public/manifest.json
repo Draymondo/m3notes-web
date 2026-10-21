@@ -8,6 +8,15 @@
   "background_color": "#ffffff",
   "theme_color": "#1a73e8",
   "orientation": "portrait",
+  "share_target": {
+    "action": "https://draymondo.github.io/m3notes-web/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "icons": [
     {
       "src": "/m3notes-web/icon-192.png",
