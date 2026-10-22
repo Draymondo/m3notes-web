@@ -6,9 +6,11 @@ functions/.env*
 !functions/.env.example
 **/service-account*.json
 
-# Note : node_modules/ est volontairement suivi par ce dépôt (convention
-# existante). Seuls les vrais fichiers de build Vite dans .vite sont
-# bruyants, pas les paquets installés.
+# Dépendances et artefacts de build : réinstallés par "npm ci" et
+# régénérés par "npm run build" (y compris dans GitHub Actions).
+node_modules/
+dist/
 
 # Journaux de debug locaux (peuvent contenir des jetons)
 *.log
+node_modules
